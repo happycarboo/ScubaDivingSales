@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "expo": "^52.0.32",
+    "firebase": "^11.3.0",
+    "react-dom": "18.3.1",
+    "react-native-web": "~0.19.13",
+    "@expo/metro-runtime": "~4.0.1"
+  }
+}
