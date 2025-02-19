@@ -1,0 +1,44 @@
+{
+  "name": "scubadivingsales",
+  "version": "1.0.0",
+  "description": "This project is a Training Sales app for web and mobile (iOS) platforms using React Native, Node.js, and Firebase.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack serve --mode development --open",
+    "build": "webpack --mode production"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@react-navigation/bottom-tabs": "^7.2.0",
+    "@react-navigation/native": "^7.0.14",
+    "@react-navigation/stack": "^7.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-native-gesture-handler": "^2.23.1",
+    "react-native-reanimated": "^3.16.7",
+    "react-native-safe-area-context": "^5.2.0",
+    "react-native-screens": "^4.6.0",
+    "react-native-svg": "^15.11.1",
+    "react-native-web": "^0.19.13",
+    "victory-native": "^41.16.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.9",
+    "@babel/plugin-transform-runtime": "^7.26.9",
+    "@babel/preset-env": "^7.26.9",
+    "@babel/preset-react": "^7.26.3",
+    "@babel/preset-typescript": "^7.26.0",
+    "@react-native-community/cli": "latest",
+    "babel-loader": "^9.2.1",
+    "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^5.6.3",
+    "metro-react-native-babel-preset": "^0.77.0",
+    "url-loader": "^4.1.1",
+    "webpack": "^5.98.0",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.0"
+  }
+}
