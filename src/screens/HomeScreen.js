@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, ScrollView, Linking } from 'react-native';
 // import { View, Text, FlatList, Image, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 // import { useNavigation } from '@react-navigation/native';
 // import { products } from '../data/products';
@@ -23,6 +23,10 @@ const HomeScreen = ({ navigation }) => {
     } else {
       alert('You can only compare products from the same category');
     }
+  };
+
+  const openURL = () => {
+    Linking.openURL('https://scubawarehouse.com.sg/product-category/dive-regulator/regulator/');
   };
 
   return (
@@ -52,7 +56,10 @@ const HomeScreen = ({ navigation }) => {
       <ScrollView style={styles.productList}>
         {sampleProducts.map((item) => (
           <View key={item.id} style={styles.productItem}>
-            <Text style={styles.productTitle}>{item.name}</Text>
+            <TouchableOpacity onPress={openURL}>
+              <Text style={styles.productTitle}>{item.name}</Text>
+            </TouchableOpacity>
+            
             <TouchableOpacity 
               style={styles.compareButton}
               onPress={() => addToCompare(item)}
