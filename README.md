@@ -1,77 +1,115 @@
-# Scuba Diving Sales App
+This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
-This project is a Training Sales app for web and mobile (iOS) platforms using React Native, Node.js, and Firebase.
+# Getting Started
 
-## Prerequisites
+> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
 
-- Node.js and npm installed
-- Firebase account
-- Expo CLI
+## Step 1: Start Metro
 
-## Setup Instructions
+First, you will need to run **Metro**, the JavaScript build tool for React Native.
 
-### Backend Setup
+To start the Metro dev server, run the following command from the root of your React Native project:
 
-1. **Clone the Repository**
+```sh
+# Using npm
+npm start
 
-   ```bash
-   git clone https://github.com/happycarboo/ScubaDivingSales.git
-   cd ScubaDivingSales/training-sales-backend
-   ```
+# OR using Yarn
+yarn start
+```
 
-2. **Install Dependencies**
+## Step 2: Build and run your app
 
-   ```bash
-   npm install
-   ```
+With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
 
-3. **Configure Firebase Admin SDK**
+### Android
 
-   - Ensure the `scuba-2b4d1-firebase-adminsdk-fbsvc-28b3c7a874.json` file is in the `training-sales-backend` directory.
+```sh
+# Using npm
+npm run android
 
-4. **Start the Backend Server**
+# OR using Yarn
+yarn android
+```
 
-   ```bash
-   npm start
-   ```
+### iOS
 
-   The server will run on `http://localhost:5001`.
+For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
 
-### Frontend Setup
+The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
 
-1. **Navigate to Frontend Directory**
+```sh
+bundle install
+```
 
-   ```bash
-   cd ../training-sales-frontend
-   ```
+Then, and every time you update your native dependencies, run:
 
-2. **Install Dependencies**
+```sh
+bundle exec pod install
+```
 
-   ```bash
-   npm install
-   ```
+For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
 
-3. **Start the Frontend**
+```sh
+# Using npm
+npm run ios
 
-   ```bash
-   npx expo start
-   ```
+# OR using Yarn
+yarn ios
+```
 
-   Use Expo Go to scan the QR code and run the app on your device.
+If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
 
-### Verify the Setup
+This is one way to run your app — you can also build it directly from Android Studio or Xcode.
 
-- **Backend**: Open a browser and go to `http://localhost:5001` to ensure the backend is running.
-- **Frontend**: The app should display "Training Sales App" on your device.
+## Step 3: Modify your app
 
-## Notes
+Now that you have successfully run the app, let's make changes!
 
-- Ensure that the backend is running before testing the frontend to allow API calls.
-- Check console logs for any errors or warnings during development.
+Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
 
-## Troubleshooting
+When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
 
-- **Port Issues**: Ensure ports 5001 and 8081 are not in use by other applications.
-- **Network Requests**: Use developer tools to inspect network requests and ensure they are reaching the backend.
+- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
+- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
 
-Feel free to reach out if you encounter any issues!
+## Congratulations! :tada:
+
+You've successfully run and modified your React Native App. :partying_face:
+
+### Now what?
+
+- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
+- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+
+# Troubleshooting
+
+If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+
+# Learn More
+
+To learn more about React Native, take a look at the following resources:
+
+- [React Native Website](https://reactnative.dev) - learn more about React Native.
+- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
+- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
+- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
+- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+
+
+# Run instructions for Android:
+    • Have an Android emulator running (quickest way to get started), or a device connected.
+    • cd "/Users/chenqian/Documents/ScubaDivingSales" && npx react-native run-android
+  
+# Run instructions for iOS:
+    • cd "/Users/chenqian/Documents/ScubaDivingSales"
+    
+    • npx react-native run-ios
+    - or -
+    • Open ScubaDivingSales/ios/ScubaDivingSales.xcworkspace in Xcode or run "xed -b ios"
+    • Hit the Run button
+    
+# Run instructions for macOS:
+    • See https://aka.ms/ReactNativeGuideMacOS for the latest up-to-date instructions.
+# newscuba
+# newscuba
