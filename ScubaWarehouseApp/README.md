@@ -1,5 +1,70 @@
 # ScubaWarehouse Sales Assistant App
 
+## Installation and Bootup Guide
+
+### Prerequisites
+- Node.js (v14 or newer)
+- npm or yarn
+- Expo CLI (optional: `npm install -g expo-cli`)
+- iOS Simulator (for Mac users) or Android Emulator
+- Expo Go app (for physical device testing)
+
+### Quick Start
+
+```bash
+# 1. Clone the repository or extract the project files
+# 2. Navigate to the project root
+cd ScubaWarehouseApp
+
+# 3. Install dependencies
+npm install
+
+# 4. Start the application
+npx expo start
+
+# (or for standard React Native)
+npm start
+```
+
+### Running the App
+
+After starting the development server:
+
+- Press `i` to open in iOS simulator
+- Press `a` to open in Android emulator
+- Press `w` to open in web browser
+- Scan the QR code with Expo Go app on your device
+
+### Stopping the App
+
+To stop the running application, press `Ctrl+C` in the terminal.
+
+### Troubleshooting
+
+If you encounter issues:
+
+1. Make sure all dependencies are installed:
+   ```bash
+   npm install @react-navigation/native @react-navigation/stack react-native-safe-area-context react-native-screens react-native-gesture-handler @react-native-firebase/firestore
+   ```
+
+2. Clear the Metro bundler cache:
+   ```bash
+   npx expo start --clear
+   # or 
+   npm start -- --reset-cache
+   ```
+
+3. For iOS simulator issues, try:
+   ```bash
+   cd ios && pod install && cd ..
+   ```
+
+4. Update Expo SDK if using Expo:
+   ```bash
+   npx expo-doctor
+   ```
+
 ## Architecture Overview
 
 This React Native application is designed for iPad use by ScubaWarehouse sales representatives, following SOLID principles and implementing key design patterns.
