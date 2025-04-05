@@ -1,10 +1,52 @@
 Project Midterm Update Report
 1. Abstract
 ScubaWarehouse, a leading diving gear retailer in Singapore, faces ongoing challenges in hiring experienced sales personnel due to the specialized nature of the industry. At the current midterm stage, significant progress has been achieved on the Scuba Warehouse Sales Assistant App, designed as an internal support tool for sales representatives. The foundational setup for frontend, backend, and database integration was successfully established and tested on the web, ensuring compatibility and initial functionality. The project subsequently transitioned into an MVP for iPad, validating core functionalities such as product filtering, competitor price scraping, and user interaction workflows with test data. Currently, our team is expanding product categories to include BCD and fins, alongside implementing a robust product comparison feature. This app continues to aim at enhancing customer satisfaction, improving sales efficiency, and supporting the company's strategic focus on an exceptional in-store retail experience.
+
 2. Project Overview
 The Scuba Warehouse Sales Assistant App aims to empower in-store sales representatives by providing tools for effective and informed customer interactions. Central objectives of the app include streamlined product selection through customer-driven filters such as budget and product specifications, comprehensive product comparison features, real-time competitor price tracking, and a sophisticated yet intuitive recommendation system tailored to diving experience levels. The architecture leverages React Native for frontend development, Node.js for backend operations, and Firebase as a real-time database solution. Additionally, the project employs strategic API integrations and custom web scraping modules for reliable real-time price comparison, clearly aligning with ScubaWarehouse's emphasis on delivering personalized, high-quality retail service.
- 
+ 
 3. Architecture
+
+```
++----------------+     +------------------+     +---------------+     +------------------+
+|   FRONTEND     |     |   API LAYER     |     |  FIREBASE DB |     | EXTERNAL SYSTEMS |
+| (React Native) |     |   (Backend)     |     |              |     |                  |
++----------------+     +------------------+     +---------------+     +------------------+
+|                |     |                  |     |               |     |                  |
+| +-----------+ |     | +-------------+  |     | +-----------+ |     | +------------+   |
+| |  Product  | |     | |   Price     |  |     | |ScubaProduct| |     | |   Web     |   |
+| |Selection UI|<----->| |  Scraper   |  |     | |Gear Filter | |     | | Scraper   |   |
+| +-----------+ |     | +-------------+  |     | +-----------+ |     | +------------+   |
+|               |     |                  |     |               |     |                  |
+| +-----------+ |     | +-------------+  |     | +-----------+ |     | +------------+   |
+| | Product   | |     | |  Product    |  |     | |Realtime &  | |     | | Real-Time |   |
+| |Details View|<----->| | Filtering   |  |     | |Historical  |<------>|   Sync    |   |
+| +-----------+ |     | +-------------+  |     | | Prices    | |     | +------------+   |
+|               |     |                  |     |               |     |                  |
+| +-----------+ |     | +-------------+  |     +---------------+     +------------------+
+| |Comparison | |     | |  Product    |  |            ^                      ^
+| |    UI     |<----->| |Recommendations|  |            |                      |
+| +-----------+ |     | +-------------+  |            |                      |
+|               |     |                  |            |              +------------------+
+| +-----------+ |     | +-------------+  |            |              |   EXISTING      |
+| |Intelligent| |     | | Business    |  |            +------------->|   E-COMMERCE    |
+| | Search    |<----->| |   Logic     |  |                           |                  |
+| +-----------+ |     | +-------------+  |                           | +------------+   |
+|               |     |                  |                           | | Detailed   |   |
+| +-----------+ |     | +-------------+  |                           | |  Specs     |   |
+| |Real-Time  | |     | |    API      |  |                           | +------------+   |
+| | Price     |<----->| | Management  |  |                           |                  |
+| +-----------+ |     | +-------------+  |                           +------------------+
++----------------+     +------------------+
+        ^
+        |
+        v
+   +---------+
+   |Salesperson|
+   |   User   |
+   +---------+
+```
+
 Scuba Diving Gear App Diagram
  
 Briefing

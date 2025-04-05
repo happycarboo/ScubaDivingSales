@@ -1,0 +1,16 @@
+Entity,,Product,,Category,,Regulator,,Cat_BCD,,Cat_Fin
+Product,,Price,,Regulator,,Brand,,Brand,,Brand
+Category,,Name,,BCD,,Brand Origin,,Brand Origin,,Brand Origin
+Cat_Regulator,,Model,,Fin,,Model,,Model,,Model
+Cat_BCD,,Brand,,,,TEMPRETURE,,Type,,Fin Type
+Cat_Fin,,Category,,,,Yoke / Din,,Weight,,Weight
+,,,,,,High Pressure Port,,Integrated Weight Pocket,,Bouyancy - positive or negative
+,,,,,,Low Pressure Port,,Lift Capacity,,Blade Design
+,,,,,,Adjustable airflow,,Material,,Fin Length
+,,,,,,Pre-Dive Mode,,,,Straps & Buckles
+,,,,,,Weights base on yoke (gram),,,,
+,,,,,,Material,,,,
+,,,,,,Dive Type,,,,
+,,,,,,Airflow at 200bar,,,,
+,,,,,,Price (SGD),,,,
+,,,,,,Other Highlights,,,,

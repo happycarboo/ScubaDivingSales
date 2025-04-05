@@ -1,0 +1,1 @@
+You need to demonstrate your completed project, major contributions, major design decisions, evidences of applying software engineering principles, test efforts, learnings from this project for future
