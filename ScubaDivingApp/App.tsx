@@ -48,9 +48,8 @@ export default function App() {
         // Get the ServiceFacade instance
         const serviceFacade = ServiceFacade.getInstance();
         
-        // Initialize with mock data by default
-        // Set to 'true' to use real Firebase once you have Firebase set up
-        const useRealFirebase = false;
+        // Enable real Firebase
+        const useRealFirebase = true;  // Changed to true to use real Firebase
         
         await serviceFacade.initialize(useRealFirebase);
         console.log('ServiceFacade initialized, using real Firebase:', serviceFacade.isUsingRealFirebase());

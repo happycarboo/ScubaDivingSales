@@ -2,7 +2,8 @@
 // This simplifies complex subsystem interactions by providing a unified interface
 
 import { Product } from '../factory/ProductFactory';
-import { FirebaseService as RealFirebaseService } from '../../services/firebase/FirebaseService';
+import { IFirebaseService } from '../../services/firebase/interfaces/IFirebaseService';
+import { FirebaseService as FirebaseServiceImpl } from '../../services/firebase/FirebaseService';
 import { ProductRepository } from '../../services/firebase/repositories/ProductRepository';
 import { IProductRepository } from '../../services/firebase/interfaces/IProductRepository';
 
@@ -79,7 +80,7 @@ export class ServiceFacade {
   private recommendationService: RecommendationService;
   
   // Real Firebase services
-  private firebaseService: RealFirebaseService;
+  private firebaseService: IFirebaseService;
   private productRepository: IProductRepository;
   
   // Use Firebase flag - set to false by default to avoid breaking changes
@@ -92,7 +93,7 @@ export class ServiceFacade {
     this.recommendationService = new RecommendationService();
     
     // Initialize real Firebase services
-    this.firebaseService = RealFirebaseService.getInstance();
+    this.firebaseService = FirebaseServiceImpl.getInstance();
     this.productRepository = new ProductRepository();
   }
   
@@ -109,21 +110,16 @@ export class ServiceFacade {
   /**
    * Initializes the service facade and its dependencies
    */
-  public async initialize(useRealFirebase: boolean = false): Promise<void> {
+  public async initialize(): Promise<void> {
     if (!this.initialized) {
-      this.useRealFirebase = useRealFirebase;
-      
-      if (this.useRealFirebase) {
-        try {
-          await this.firebaseService.initialize();
-          console.log('ServiceFacade initialized with real Firebase');
-        } catch (error) {
-          console.error('Failed to initialize real Firebase, falling back to mock data:', error);
-          this.useRealFirebase = false;
-        }
+      try {
+        await this.firebaseService.initialize();
+        console.log('ServiceFacade initialized with Firebase');
+        this.initialized = true;
+      } catch (error) {
+        console.error('Failed to initialize Firebase:', error);
+        throw error;
       }
-      
-      this.initialized = true;
     }
   }
   
@@ -134,50 +130,49 @@ export class ServiceFacade {
     return this.useRealFirebase;
   }
 
-  // Simplified operations that orchestrate multiple subsystems
-
+  /**
+   * Gets all products with optional filters
+   */
   async getProductsWithFilters(filters: Record<string, any>): Promise<Product[]> {
-    if (this.useRealFirebase) {
-      try {
-        if (filters.type) {
-          return this.productRepository.getProductsByType(filters.type);
-        }
-        return this.productRepository.getAllProducts();
-      } catch (error) {
-        console.error('Error using real Firebase, falling back to mock data:', error);
-        // Fall back to legacy implementation
-        return this.legacyFirebaseService.fetchProducts(filters);
+    try {
+      console.log('Fetching products with filters:', filters);
+      if (filters.type) {
+        return await this.productRepository.getProductsByType(filters.type);
       }
+      const products = await this.productRepository.getAllProducts();
+      console.log('Fetched products:', products);
+      return products;
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      throw error;
     }
-    
-    return this.legacyFirebaseService.fetchProducts(filters);
   }
 
+  /**
+   * Gets a single product with price comparison
+   */
   async getProductWithPriceComparison(productId: string): Promise<{
-    product: any;
+    product: Product;
     competitorPrices: Record<string, number>;
   }> {
-    let product;
-    
-    // Try to get product from real Firebase if enabled
-    if (this.useRealFirebase) {
-      try {
-        product = await this.productRepository.getProduct(productId);
-      } catch (error) {
-        console.error('Error getting product from real Firebase, falling back to mock data:', error);
-        product = await this.legacyFirebaseService.fetchProductDetails(productId);
-      }
-    } else {
-      product = await this.legacyFirebaseService.fetchProductDetails(productId);
-    }
-    
-    // Get competitor prices (always using mock for now)
-    const competitorPrices = await this.priceScraperService.fetchCompetitorPrices(productId);
+    try {
+      const product = await this.productRepository.getProduct(productId);
+      
+      // Mock competitor prices for now
+      const competitorPrices = {
+        'Competitor A': product.price * 1.1,
+        'Competitor B': product.price * 0.95,
+        'Competitor C': product.price * 1.05,
+      };
 
-    return {
-      product,
-      competitorPrices,
-    };
+      return {
+        product,
+        competitorPrices,
+      };
+    } catch (error) {
+      console.error('Error getting product with price comparison:', error);
+      throw error;
+    }
   }
 
   async getPersonalizedRecommendations(
@@ -188,5 +183,14 @@ export class ServiceFacade {
     // Still using legacy implementation for preferences and recommendations
     await this.legacyFirebaseService.saveUserPreferences(userId, preferences);
     return this.recommendationService.getRecommendations(userProfile, preferences);
+  }
+
+  async createProduct(product: Product): Promise<void> {
+    try {
+      await this.productRepository.createProduct(product);
+    } catch (error) {
+      console.error('Error creating product:', error);
+      throw error;
+    }
   }
 } 

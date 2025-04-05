@@ -20,8 +20,9 @@ type ProductItem = {
   name: string;
   brand: string;
   price: number;
-  type: 'regulator' | 'bcd' | 'fin';
+  type: string;
   specifications: Record<string, any>;
+  getDescription(): string;
 };
 
 const ProductSelectionScreen = () => {
@@ -35,19 +36,26 @@ const ProductSelectionScreen = () => {
 
   // Create instances of our patterns
   const productFactory = new ProductFactory();
-  const serviceFacade = new ServiceFacade();
+  // Use ServiceFacade singleton
+  const serviceFacade = ServiceFacade.getInstance();
 
   useEffect(() => {
     // Fetch products using the Service Facade
     const fetchProducts = async () => {
       try {
         setLoading(true);
+        console.log('Fetching products from Firebase...');
         const productsData = await serviceFacade.getProductsWithFilters({});
+        console.log('Products fetched:', productsData);
         setProducts(productsData);
         setFilteredProducts(productsData);
       } catch (error) {
-        Alert.alert('Error', 'Failed to fetch products');
-        console.error(error);
+        console.error('Error fetching products:', error);
+        Alert.alert(
+          'Error',
+          'Failed to fetch products. Please check your connection and try again.',
+          [{ text: 'OK' }]
+        );
       } finally {
         setLoading(false);
       }
