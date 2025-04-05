@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from './src/types/navigation';
+import { ServiceFacade } from './src/patterns/facade/ServiceFacade';
 
 // Import screens
 import ProductSelectionScreen from './src/screens/ProductSelection';
@@ -19,9 +20,60 @@ const RealTimeComparisonScreen = () => (
   </View>
 );
 
+// Loading Screen Component
+const LoadingScreen = () => (
+  <View style={styles.screen}>
+    <ActivityIndicator size="large" color="#0066cc" />
+    <Text style={styles.loadingText}>Initializing app...</Text>
+  </View>
+);
+
+// Error Screen Component
+const ErrorScreen = ({ message }: { message: string }) => (
+  <View style={styles.screen}>
+    <Text style={styles.errorTitle}>Error</Text>
+    <Text style={styles.errorMessage}>{message}</Text>
+  </View>
+);
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const initializeServices = async () => {
+      try {
+        // Get the ServiceFacade instance
+        const serviceFacade = ServiceFacade.getInstance();
+        
+        // Initialize with mock data by default
+        // Set to 'true' to use real Firebase once you have Firebase set up
+        const useRealFirebase = false;
+        
+        await serviceFacade.initialize(useRealFirebase);
+        console.log('ServiceFacade initialized, using real Firebase:', serviceFacade.isUsingRealFirebase());
+        
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Failed to initialize services:', err);
+        setError('Failed to initialize the application. Please try again later.');
+        setIsLoading(false);
+      }
+    };
+
+    initializeServices();
+  }, []);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (error) {
+    return <ErrorScreen message={error} />;
+  }
+
   return (
     <NavigationContainer>
       <StatusBar style="auto" />
@@ -79,5 +131,20 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 16,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+  },
+  errorTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: 'red',
+  },
+  errorMessage: {
+    fontSize: 16,
+    color: '#444',
+    textAlign: 'center',
   },
 });

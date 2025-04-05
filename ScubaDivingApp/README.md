@@ -10,6 +10,16 @@ This application is built using React Native for iPad and follows SOLID principl
 - **Visitor Pattern**: For implementing operations on products without modifying their classes
 - **Facade Pattern**: For simplifying complex subsystem interactions
 
+### Firebase Integration
+
+This app integrates with Firebase Firestore for real-time data storage and retrieval. The implementation follows SOLID principles:
+
+- **Single Responsibility Principle**: Separate classes for Firebase service and repository operations
+- **Open/Closed Principle**: Repositories can be extended without modification
+- **Liskov Substitution Principle**: Interfaces and implementations are substitutable
+- **Interface Segregation Principle**: Small, focused interfaces with specific responsibilities
+- **Dependency Inversion Principle**: High-level modules depend on abstractions
+
 ## Project Structure
 
 ```
@@ -29,7 +39,11 @@ ScubaDivingApp/
 │   │   └── RealTimeComparison/
 │   ├── services/            # Services for API calls and data handling
 │   │   ├── api/
-│   │   ├── firebase/
+│   │   ├── firebase/        # Firebase integration
+│   │   │   ├── config/      # Firebase configuration
+│   │   │   ├── interfaces/  # Service and repository interfaces
+│   │   │   ├── repositories/# Database repository implementations
+│   │   │   └── FirebaseService.ts # Core Firebase service
 │   │   └── scraper/
 │   ├── patterns/            # Design pattern implementations
 │   │   ├── factory/         # Factory Method pattern
@@ -397,4 +411,41 @@ For all code changes, ensure:
 
 ## Project Completion Requirements
 
-[... existing content remains the same ...] 
+[... existing content remains the same ...]
+
+## Firebase Configuration
+
+To use Firebase with this application, you need to:
+
+1. Create a Firebase project at [https://console.firebase.google.com/](https://console.firebase.google.com/)
+2. Enable Firestore Database in your project
+3. Set up Firestore security rules to allow read/write operations
+4. Add your Firebase configuration details in one of these ways:
+   - Create a `.env` file with the following variables:
+     ```
+     EXPO_PUBLIC_FIREBASE_API_KEY=your-api-key
+     EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your-auth-domain
+     EXPO_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+     EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your-storage-bucket
+     EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-messaging-sender-id
+     EXPO_PUBLIC_FIREBASE_APP_ID=your-app-id
+     EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID=your-measurement-id
+     ```
+   - Or directly replace placeholder values in `src/services/firebase/config/firebase.config.ts`
+
+5. To enable real Firebase (instead of mock data), set `useRealFirebase` to `true` in `App.tsx`.
+
+### Firestore Data Structure
+
+The application expects a Firestore database with the following structure:
+
+- Collection: `products`
+  - Document ID: Product ID (e.g., "1", "2", "3")
+  - Fields:
+    - `name`: string
+    - `brand`: string
+    - `price`: number
+    - `type`: string (one of: "regulator", "bcd", "fin")
+    - `specifications`: object with product details
+
+[... rest of the existing content ...] 
