@@ -118,21 +118,283 @@ npm test
 yarn test
 ```
 
-## SOLID Principles Implementation
+## Development Guide: SOLID Principles & Design Patterns
 
-- **Single Responsibility Principle**: Each class has a single responsibility (e.g., ProductFactory only creates products)
-- **Open/Closed Principle**: The system is open for extension (new product types can be added) but closed for modification
-- **Liskov Substitution Principle**: Derived classes (like RegulatorProduct) can be substituted for their base classes (Product)
-- **Interface Segregation Principle**: Clients only depend on interfaces they use (e.g., ProductVisitor)
-- **Dependency Inversion Principle**: High-level modules depend on abstractions, not implementations
+This guide outlines the core architectural principles and design patterns that **must be maintained throughout all development phases**. All new features and modifications should adhere to these guidelines to maintain code quality and architectural integrity.
 
-## Design Patterns Implementation
+### SOLID Principles: Implementation Requirements
 
-### Factory Method Pattern
-Located in `src/patterns/factory/ProductFactory.ts`, this pattern allows creating different product types through a common interface.
+#### 1. Single Responsibility Principle (SRP)
 
-### Visitor Pattern
-Located in `src/patterns/visitor/ProductVisitor.ts`, this pattern enables adding new operations to product objects without modifying their structure.
+**Core Requirement:** Each class, component, or module must have only one reason to change.
 
-### Facade Pattern
-Located in `src/patterns/facade/ServiceFacade.ts`, this pattern provides a simplified interface to the complex subsystem of services. 
+**Implementation Rules:**
+- Keep React components focused on rendering and user interaction only
+- Extract data fetching and processing into separate services
+- Create dedicated classes for specific business logic operations
+- Separate validation, calculation, and presentation concerns
+
+**Validation Checklist:**
+- [ ] Does this class/component do exactly one thing?
+- [ ] If I describe its purpose, do I use "and" or "or"? (If yes, consider splitting it)
+- [ ] Are its dependencies limited to what it needs for its single responsibility?
+
+#### 2. Open/Closed Principle (OCP)
+
+**Core Requirement:** Software entities should be open for extension but closed for modification.
+
+**Implementation Rules:**
+- Use interfaces and abstract classes for core functionality
+- Never modify existing working classes; extend them instead
+- Implement plugins, strategies, or handlers for variations in behavior
+- Leverage TypeScript interfaces to define contracts
+
+**Validation Checklist:**
+- [ ] Can I add new functionality without changing existing code?
+- [ ] Are extension points clearly defined through interfaces?
+- [ ] Have I used composition over inheritance where appropriate?
+
+#### 3. Liskov Substitution Principle (LSP)
+
+**Core Requirement:** Objects of a superclass should be replaceable with objects of subclasses without affecting program correctness.
+
+**Implementation Rules:**
+- Ensure subclasses fully implement the contract of their parent/interface
+- Maintain consistent behavior in method overrides
+- Don't throw unexpected exceptions or add unexpected side effects in subclasses
+- Use abstract base classes to enforce behavior consistency
+
+**Validation Checklist:**
+- [ ] Do derived classes fully satisfy the contracts of their base types?
+- [ ] Can I use any derived class wherever the base class is used?
+- [ ] Do overridden methods behave consistently with base class expectations?
+
+#### 4. Interface Segregation Principle (ISP)
+
+**Core Requirement:** Clients should not be forced to depend on interfaces they don't use.
+
+**Implementation Rules:**
+- Create small, focused interfaces rather than large, monolithic ones
+- Compose interfaces for classes that need multiple behaviors
+- Split React component props into logical groups
+- Use TypeScript's interface extension to compose interfaces
+
+**Validation Checklist:**
+- [ ] Are interfaces focused on a specific set of related behaviors?
+- [ ] Do implementing classes use all the methods in the interfaces they implement?
+- [ ] Have I composed multiple smaller interfaces instead of one large interface?
+
+#### 5. Dependency Inversion Principle (DIP)
+
+**Core Requirement:** High-level modules should not depend on low-level modules. Both should depend on abstractions.
+
+**Implementation Rules:**
+- Define interfaces for all services and data access
+- Use dependency injection for all service dependencies
+- Avoid direct instantiation of service classes
+- Configure dependencies in a central location
+
+**Validation Checklist:**
+- [ ] Do higher-level modules depend on abstractions rather than concrete implementations?
+- [ ] Can I swap implementations without changing the dependent code?
+- [ ] Are dependencies injected rather than instantiated internally?
+
+### Design Patterns: Implementation Requirements
+
+#### 1. Factory Method Pattern
+
+**Locations:** `src/patterns/factory/`
+
+**Core Requirement:** Provide an interface for creating objects without specifying their concrete classes.
+
+**Implementation Rules:**
+- Use `ProductFactory` for all product-related object creation
+- Maintain the common `Product` interface for all product types
+- Add new product types by extending the factory, not modifying it
+- Keep product construction details encapsulated in the factory
+
+**Usage Example:**
+```typescript
+// CORRECT: Using the factory
+const factory = new ProductFactory();
+const product = factory.createProduct('regulator', id, name, brand, price, specs);
+
+// INCORRECT: Direct instantiation
+const product = new RegulatorProduct(id, name, brand, price, specs);
+```
+
+#### 2. Visitor Pattern
+
+**Locations:** `src/patterns/visitor/`
+
+**Core Requirement:** Separate algorithms from the objects they operate on, allowing new operations without modifying those objects.
+
+**Implementation Rules:**
+- Use visitors for all operations that vary by product type
+- Implement the `accept` method in all product classes
+- Create specific visitors for distinct operations (pricing, recommendation, etc.)
+- Return typed values from visitor methods for type safety
+
+**Usage Example:**
+```typescript
+// CORRECT: Using the visitor pattern
+const visitor = new PriceCalculatorVisitor(userExperienceLevel);
+const price = product.accept(visitor);
+
+// INCORRECT: Direct operation in product
+const price = product.calculatePrice(userExperienceLevel);
+```
+
+#### 3. Facade Pattern
+
+**Locations:** `src/patterns/facade/`
+
+**Core Requirement:** Provide a simplified interface to a complex subsystem.
+
+**Implementation Rules:**
+- Use `ServiceFacade` for all data and service access from UI components
+- Encapsulate complex service interactions behind simple facade methods
+- Keep UI components decoupled from service implementations
+- Handle errors and edge cases within the facade
+
+**Usage Example:**
+```typescript
+// CORRECT: Using the facade
+const serviceFacade = new ServiceFacade();
+const result = await serviceFacade.getProductWithPriceComparison(productId);
+
+// INCORRECT: Direct service usage
+const firebaseService = new FirebaseService();
+const product = await firebaseService.fetchProductDetails(productId);
+const priceService = new PriceScraperService();
+const prices = await priceService.fetchCompetitorPrices(productId);
+```
+
+### Advanced Pattern Implementation (Required for Later Phases)
+
+#### 1. Registry Pattern for Factory Extensions
+
+As product types grow, enhance the factory with a registry:
+
+```typescript
+export class ProductRegistry {
+  private static creators: Map<string, ProductCreator> = new Map();
+  
+  static register(type: string, creator: ProductCreator): void {
+    this.creators.set(type, creator);
+  }
+  
+  static getCreator(type: string): ProductCreator {
+    const creator = this.creators.get(type);
+    if (!creator) throw new Error(`No creator registered for type: ${type}`);
+    return creator;
+  }
+}
+```
+
+#### 2. Composite Visitor for Complex Operations
+
+For advanced operations requiring multiple visitor types:
+
+```typescript
+export class ProductAnalysisVisitor implements ProductVisitor<ProductAnalysis> {
+  constructor(
+    private readonly visitors: ProductVisitor<any>[]
+  ) {}
+  
+  visitRegulator(product: RegulatorProduct): ProductAnalysis {
+    return {
+      product: product,
+      results: this.visitors.map(visitor => visitor.visitRegulator(product))
+    };
+  }
+  
+  // Similar implementations for other product types
+}
+```
+
+#### 3. Configurable Facade for Flexible Service Interaction
+
+For more flexible service configuration:
+
+```typescript
+export class ConfigurableServiceFacade {
+  constructor(
+    private readonly config: ServiceConfig,
+    private readonly services: ServiceRegistry
+  ) {}
+  
+  async getProductsWithFilters(filters: FilterOptions): Promise<Product[]> {
+    const dataService = this.services.get<IProductDataService>('productData');
+    // Implementation with error handling, caching based on config
+  }
+}
+```
+
+## Code Quality Checklist
+
+For all code changes, ensure:
+
+1. **SOLID Compliance**
+   - [ ] Classes have single responsibilities
+   - [ ] Extensions are made through interfaces, not modifications
+   - [ ] Substitutable implementations for all abstractions
+   - [ ] Focused interfaces with no unused methods
+   - [ ] Dependencies on abstractions, not concretions
+
+2. **Pattern Adherence**
+   - [ ] Factory Pattern for object creation
+   - [ ] Visitor Pattern for operations on products
+   - [ ] Facade Pattern for service access
+
+3. **Code Quality**
+   - [ ] Consistent naming conventions
+   - [ ] Proper error handling
+   - [ ] Performance considerations
+   - [ ] Tests for new functionality
+
+## Implementation Roadmap
+
+### Phase 1: Core Functionality Enhancement
+- Complete Firebase integration for real product data
+- Implement proper error handling and loading states
+- Enhance product detail page with complete specifications
+- Add proper navigation between screens
+
+### Phase 2: Pattern Implementation Completion
+- Enhance Factory Pattern with product registration system
+- Complete Visitor Pattern integration with user experience levels
+- Expand Facade Pattern with proper error handling and caching
+
+### Phase 3: Advanced Features
+- Implement real-time price comparison using web scraping
+- Add intelligent search functionality with natural language processing
+- Develop recommendation engine based on user preferences and experience
+- Build comprehensive product comparison feature
+
+### Phase 4: Optimization and Refinement
+- Optimize performance for large product catalogs
+- Implement proper state management solution
+- Add automated testing for all components
+- Refine UI/UX for optimal sales experience
+
+## Testing Strategy
+
+### Unit Testing
+- Test each pattern implementation in isolation
+- Verify SOLID principles adherence through tests
+- Validate business logic operations
+
+### Integration Testing
+- Test interactions between different subsystems
+- Verify proper facade operation with mocked services
+- Test navigation flows and screen transitions
+
+### UI Testing
+- Verify component rendering
+- Test user interactions and form submissions
+- Validate responsive design for different iPad models
+
+## Project Completion Requirements
+
+[... existing content remains the same ...] 
