@@ -50,7 +50,9 @@ ScubaDivingApp/
 
 - Node.js (v14 or newer)
 - npm or yarn
-- iOS development environment (for iPad testing)
+- Xcode (latest version) for iOS development
+- iOS Simulator with iPad support
+- macOS for iOS development
 
 ### Installation
 
@@ -60,28 +62,53 @@ git clone https://github.com/your-username/ScubaDivingSales.git
 cd ScubaDivingSales
 ```
 
-2. Install dependencies
+2. Navigate to the app directory
+```bash
+cd ScubaDivingApp
+```
+
+3. Install dependencies
 ```bash
 npm install
-# or
-yarn install
 ```
 
 ### Running the App
 
-#### For iOS (iPad)
+1. **Start the development server**
 ```bash
-npm run ios
-# or
-yarn ios
+npx expo start
 ```
 
-#### For development
-```bash
-npm start
-# or
-yarn start
-```
+2. **Launch on iPad Simulator**
+   - Once the Expo server is running, you'll see a QR code in the terminal
+   - Press `shift + i` to open the iPad simulator
+   - The app will automatically load in the simulator
+   - If the simulator doesn't appear:
+     - Open Xcode → Xcode menu → Open Developer Tool → Simulator
+     - Or run `open -a Simulator` in a new terminal window
+     - Return to the Expo terminal and press `i` again
+
+3. **Troubleshooting Simulator Issues**
+   If the simulator doesn't launch:
+   ```bash
+   # Reset all simulators
+   xcrun simctl shutdown all
+   xcrun simctl erase all
+   ```
+   Then restart the Expo server and try again.
+
+4. **Development Mode**
+   - Use `cmd + D` in the simulator to open the developer menu
+   - Enable Hot Reloading for instant updates while coding
+   - Use the React Native Debugger for debugging
+
+5. **Terminating the App**
+   - To stop the development server: Press `Ctrl + C` in the terminal
+   - To close everything (server and simulator):
+   ```bash
+   # Kill Expo process and shutdown simulators
+   pkill -f "expo" && xcrun simctl shutdown all
+   ```
 
 ### Testing
 
