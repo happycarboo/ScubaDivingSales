@@ -12,6 +12,7 @@ import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { ServiceFacade } from '../../patterns/facade/ServiceFacade';
 import { ProductFactory } from '../../patterns/factory/ProductFactory';
 import { RootStackParamList, ProductDetailsScreenNavigationProp } from '../../types/navigation';
+import CompetitorPricesComponent from '../../components/product/CompetitorPricesComponent';
 
 type ProductDetailsRouteProp = RouteProp<RootStackParamList, 'ProductDetails'>;
 
@@ -25,7 +26,7 @@ const ProductDetailsScreen = () => {
   const [loading, setLoading] = useState(true);
   
   // Service facade for simplifying API interactions
-  const serviceFacade = new ServiceFacade();
+  const serviceFacade = ServiceFacade.getInstance();
   // Product factory for creating the right product type
   const productFactory = new ProductFactory();
   
@@ -117,32 +118,11 @@ const ProductDetailsScreen = () => {
         ))}
       </View>
       
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Competitor Prices</Text>
-        {Object.entries(competitorPrices).map(([competitor, price]) => (
-          <View key={competitor} style={styles.priceRow}>
-            <Text style={styles.competitorName}>{competitor}</Text>
-            <Text 
-              style={[
-                styles.competitorPrice, 
-                price > productInstance.price ? styles.higherPrice : 
-                price < productInstance.price ? styles.lowerPrice : null
-              ]}
-            >
-              ${price.toFixed(2)}
-              {price > productInstance.price && " (Higher)"}
-              {price < productInstance.price && " (Lower)"}
-            </Text>
-          </View>
-        ))}
-      </View>
-      
-      <TouchableOpacity 
-        style={styles.compareButton}
-        onPress={handleComparePress}
-      >
-        <Text style={styles.compareButtonText}>Full Price Comparison</Text>
-      </TouchableOpacity>
+      <CompetitorPricesComponent 
+        productId={productId}
+        productPrice={productInstance.price}
+        onPriceComparisonPressed={handleComparePress}
+      />
     </ScrollView>
   );
 };
@@ -245,40 +225,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     flex: 1,
     textAlign: 'right',
-  },
-  priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingVertical: 12,
-  },
-  competitorName: {
-    fontSize: 16,
-    color: '#555',
-  },
-  competitorPrice: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  higherPrice: {
-    color: '#009900', // Green for prices higher than ours (good for us)
-  },
-  lowerPrice: {
-    color: '#cc0000', // Red for prices lower than ours (competition is cheaper)
-  },
-  compareButton: {
-    backgroundColor: '#0066cc',
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 16,
-    marginBottom: 32,
-  },
-  compareButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
 

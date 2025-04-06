@@ -7,6 +7,8 @@ import { FirebaseService as FirebaseServiceImpl } from '../../services/firebase/
 import { ProductRepository } from '../../services/firebase/repositories/ProductRepository';
 import { IProductRepository } from '../../services/firebase/interfaces/IProductRepository';
 import { RegulatorDetails, BCDDetails } from '../../services/firebase/repositories/ProductRepository';
+import { PriceScraperService as RealTimePriceScraperService } from '../../services/scraper/PriceScraperService';
+import { CompetitorPrice, IPriceScraperService } from '../../services/scraper/interfaces/IPriceScraperService';
 
 // Legacy subsystem classes - kept for backward compatibility
 class FirebaseService {
@@ -84,6 +86,9 @@ export class ServiceFacade {
   private firebaseService: IFirebaseService;
   private productRepository: IProductRepository;
   
+  // Real-time price scraper service
+  private realTimePriceScraperService: IPriceScraperService;
+  
   // Use Firebase flag - set to false by default to avoid breaking changes
   private useRealFirebase: boolean = false;
 
@@ -96,6 +101,9 @@ export class ServiceFacade {
     // Initialize real Firebase services
     this.firebaseService = FirebaseServiceImpl.getInstance();
     this.productRepository = new ProductRepository();
+    
+    // Initialize real-time price scraper service
+    this.realTimePriceScraperService = RealTimePriceScraperService.getInstance();
   }
   
   /**
@@ -159,12 +167,23 @@ export class ServiceFacade {
     try {
       const product = await this.productRepository.getProduct(productId);
       
-      // Mock competitor prices for now
-      const competitorPrices = {
-        'Competitor A': product.price * 1.1,
-        'Competitor B': product.price * 0.95,
-        'Competitor C': product.price * 1.05,
-      };
+      // First, try to get cached prices from the real-time price scraper
+      const cachedPrices = await this.realTimePriceScraperService.getLastFetchedPrices(productId);
+      
+      // Convert to the original format for backward compatibility
+      const competitorPrices: Record<string, number> = {};
+      
+      if (cachedPrices) {
+        // Use cached prices if available
+        Object.entries(cachedPrices).forEach(([competitor, data]) => {
+          competitorPrices[competitor] = data.price;
+        });
+      } else {
+        // Fallback to mock prices if no cached data
+        competitorPrices['Competitor A'] = product.price * 1.1;
+        competitorPrices['Competitor B'] = product.price * 0.95;
+        competitorPrices['Competitor C'] = product.price * 1.05;
+      }
 
       return {
         product,
@@ -172,6 +191,52 @@ export class ServiceFacade {
       };
     } catch (error) {
       console.error('Error getting product with price comparison:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetches real-time competitor prices for a product
+   * @param productId Product ID
+   * @returns Promise with full competitor price information including source URLs and timestamps
+   */
+  async fetchRealTimeCompetitorPrices(productId: string): Promise<{
+    product: Product;
+    competitorPrices: Record<string, CompetitorPrice>;
+    isFetching: boolean;
+  }> {
+    try {
+      // Indicate that fetching is in progress
+      const result = {
+        product: await this.productRepository.getProduct(productId),
+        competitorPrices: {},
+        isFetching: true
+      };
+      
+      // Try to get cached prices first
+      const cachedPrices = await this.realTimePriceScraperService.getLastFetchedPrices(productId);
+      if (cachedPrices) {
+        result.competitorPrices = cachedPrices;
+      }
+      
+      // Start fetching new prices
+      this.realTimePriceScraperService
+        .fetchCompetitorPrices(
+          productId, 
+          result.product.name, 
+          result.product.brand
+        )
+        .then(freshPrices => {
+          // Update will happen in the component via useEffect
+          console.log('Fetched fresh competitor prices:', freshPrices);
+        })
+        .catch(error => {
+          console.error('Error fetching real-time competitor prices:', error);
+        });
+      
+      return result;
+    } catch (error) {
+      console.error('Error starting real-time price comparison:', error);
       throw error;
     }
   }
@@ -243,6 +308,20 @@ export class ServiceFacade {
     } catch (error) {
       console.error('Error creating product:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Gets the last fetched competitor prices from the cache
+   * @param productId Product ID
+   * @returns Promise with the cached competitor prices or null if not available
+   */
+  async getLastFetchedCompetitorPrices(productId: string): Promise<Record<string, CompetitorPrice> | null> {
+    try {
+      return await this.realTimePriceScraperService.getLastFetchedPrices(productId);
+    } catch (error) {
+      console.error('Error getting last fetched competitor prices:', error);
+      return null;
     }
   }
 } 
