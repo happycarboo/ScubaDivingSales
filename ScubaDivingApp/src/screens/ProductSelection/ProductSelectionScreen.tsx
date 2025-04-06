@@ -7,7 +7,8 @@ import {
   TouchableOpacity, 
   TextInput,
   ActivityIndicator,
-  Alert 
+  Alert,
+  Linking
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ProductFactory } from '../../patterns/factory/ProductFactory';
@@ -23,6 +24,7 @@ type ProductItem = {
   type: string;
   specifications: Record<string, any>;
   getDescription(): string;
+  link: string;
 };
 
 const ProductSelectionScreen = () => {
@@ -47,6 +49,12 @@ const ProductSelectionScreen = () => {
         console.log('Fetching products from Firebase...');
         const productsData = await serviceFacade.getProductsWithFilters({});
         console.log('Products fetched:', productsData);
+        
+        // Debug each product's link
+        productsData.forEach((product, index) => {
+          console.log(`Product ${index + 1} (${product.name}) link:`, product.link);
+        });
+        
         setProducts(productsData);
         setFilteredProducts(productsData);
       } catch (error) {
@@ -90,6 +98,22 @@ const ProductSelectionScreen = () => {
     setFilteredProducts(filtered);
   }, [searchQuery, priceRange, selectedType, products]);
 
+  // Add a useEffect to log product details after they are loaded
+  useEffect(() => {
+    if (products.length > 0) {
+      console.log('Product details for debugging:');
+      products.forEach((product, index) => {
+        console.log(`Product ${index + 1}:`, {
+          id: product.id,
+          name: product.name,
+          link: product.link,
+          hasLinkProperty: 'link' in product,
+          linkType: typeof product.link
+        });
+      });
+    }
+  }, [products]);
+
   // Navigate to product details
   const handleProductPress = (product: ProductItem) => {
     navigation.navigate('ProductDetails', { productId: product.id });
@@ -105,25 +129,73 @@ const ProductSelectionScreen = () => {
     navigation.navigate('IntelligentSearch');
   };
 
+  // Add functions to handle checkbox selection and link opening
+  const handleSelectProduct = (productId: string) => {
+    // Logic to handle product selection
+  };
+
+  const handleOpenProductLink = async (link?: string) => {
+    console.log('Attempting to open link:', link);
+    
+    // Check if link exists
+    if (!link) {
+      console.log('Link is undefined or empty');
+      Alert.alert('Error', 'Product link is not available');
+      return;
+    }
+    
+    try {
+      const supported = await Linking.canOpenURL(link);
+      console.log('Is link supported?', supported);
+
+      if (supported) {
+        await Linking.openURL(link);
+        console.log('Link opened successfully');
+      } else {
+        console.log(`Don't know how to open this URL: ${link}`);
+        Alert.alert(`Don't know how to open this URL: ${link}`);
+      }
+    } catch (error) {
+      console.error('Error opening link:', error);
+      Alert.alert('Error', 'Could not open the link.');
+    }
+  };
+
   // Render product card
   const renderProductCard = ({ item }: { item: ProductItem }) => {
+    // Log the specific item being rendered
+    console.log('Rendering product card for:', {
+      id: item.id,
+      name: item.name,
+      hasLink: 'link' in item,
+      link: item.link
+    });
+    
     return (
       <TouchableOpacity 
         style={styles.productCard}
         onPress={() => handleProductPress(item)}
       >
+        <TouchableOpacity style={styles.selectCheckbox} onPress={() => handleSelectProduct(item.id)}>
+          <Text>☑️</Text>
+        </TouchableOpacity>
         <Text style={styles.productBrand}>{item.brand}</Text>
         <Text style={styles.productName}>{item.name}</Text>
         <Text style={styles.productPrice}>${item.price}</Text>
         <View style={styles.productFooter}>
           <View style={styles.productCategory}>
             <Text style={styles.productCategoryText}>
-              {item.specifications?.category || item.type.toUpperCase()}
+              {item.specifications?.category.toUpperCase()}
             </Text>
           </View>
-          <View style={styles.productType}>
-            <Text style={styles.productTypeText}>{item.type.toUpperCase()}</Text>
-          </View>
+          <TouchableOpacity 
+            onPress={() => {
+              console.log('Web button clicked for product:', item.id, 'with link:', item.link);
+              item.link ? handleOpenProductLink(item.link) : Alert.alert('Error', 'Product link is not available');
+            }}
+          >
+            <Text>Web</Text>
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     );
@@ -304,16 +376,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
   },
-  productType: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    backgroundColor: '#e0f0ff',
-    borderRadius: 4,
-  },
-  productTypeText: {
-    fontSize: 12,
-    color: '#0066cc',
-  },
   productDescription: {
     fontSize: 14,
     color: '#666',
@@ -334,6 +396,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
+  },
+  selectCheckbox: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
   },
 });
 

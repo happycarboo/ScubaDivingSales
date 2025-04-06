@@ -16,9 +16,9 @@ class FirebaseService {
     // In a real app, this would connect to Firebase
     console.log('Fetching products from Firebase with filters:', filters);
     return Promise.resolve([
-      { id: '1', name: 'XTR Pro', brand: 'Scubapro', price: 799, type: 'regulator', specifications: { qualityScore: 9 } },
-      { id: '2', name: 'Wave BCD', brand: 'Mares', price: 499, type: 'bcd', specifications: { qualityScore: 8 } },
-      { id: '3', name: 'Avanti Quattro', brand: 'Mares', price: 159, type: 'fin', specifications: { qualityScore: 8.5 } },
+      { id: '1', name: 'XTR Pro', brand: 'Scubapro', price: 799, type: 'regulator', specifications: { qualityScore: 9 }, link: 'https://www.scubapro.com/products/regulators/xtr-pro' },
+      { id: '2', name: 'Wave BCD', brand: 'Mares', price: 499, type: 'bcd', specifications: { qualityScore: 8 }, link: 'https://www.mares.com/products/bcds/wave-bcd' },
+      { id: '3', name: 'Avanti Quattro', brand: 'Mares', price: 159, type: 'fin', specifications: { qualityScore: 8.5 }, link: 'https://www.mares.com/products/fins/avanti-quattro' },
     ]);
   }
 
@@ -31,6 +31,7 @@ class FirebaseService {
       brand: 'Scubapro',
       price: 799,
       type: 'regulator',
+      link: 'https://www.scubapro.com/products/regulators/xtr-pro',
       specifications: {
         qualityScore: 9,
         weight: '1.2kg',

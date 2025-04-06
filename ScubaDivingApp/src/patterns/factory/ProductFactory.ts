@@ -9,6 +9,7 @@ export interface Product {
   price: number;
   specifications: Record<string, any>;
   imageUrl?: string;
+  link: string;
   getDescription(): string;
 }
 
@@ -21,14 +22,16 @@ export class RegulatorProduct implements Product {
   type: string;
   specifications: Record<string, any>;
   imageUrl?: string;
+  link: string;
 
-  constructor(id: string, name: string, brand: string, price: number, specs: Record<string, any>) {
+  constructor(id: string, name: string, brand: string, price: number, specs: Record<string, any>, link: string) {
     this.id = id;
     this.name = name;
     this.brand = brand;
     this.price = price;
     this.type = 'regulator';
     this.specifications = specs;
+    this.link = link;
   }
 
   getDescription(): string {
@@ -44,14 +47,16 @@ export class BCDProduct implements Product {
   type: string;
   specifications: Record<string, any>;
   imageUrl?: string;
+  link: string;
 
-  constructor(id: string, name: string, brand: string, price: number, specs: Record<string, any>) {
+  constructor(id: string, name: string, brand: string, price: number, specs: Record<string, any>, link: string) {
     this.id = id;
     this.name = name;
     this.brand = brand;
     this.price = price;
     this.type = 'bcd';
     this.specifications = specs;
+    this.link = link;
   }
 
   getDescription(): string {
@@ -67,14 +72,16 @@ export class FinProduct implements Product {
   type: string;
   specifications: Record<string, any>;
   imageUrl?: string;
+  link: string;
 
-  constructor(id: string, name: string, brand: string, price: number, specs: Record<string, any>) {
+  constructor(id: string, name: string, brand: string, price: number, specs: Record<string, any>, link: string) {
     this.id = id;
     this.name = name;
     this.brand = brand;
     this.price = price;
     this.type = 'fin';
     this.specifications = specs;
+    this.link = link;
   }
 
   getDescription(): string {
@@ -90,6 +97,7 @@ export class ProductFactory {
     name: string,
     brand: string,
     price: number,
+    link: string,
     specifications: Record<string, any> = {},
     imageUrl?: string
   ): Product {
@@ -99,6 +107,7 @@ export class ProductFactory {
       name,
       brand,
       price,
+      link,
       specifications,
       imageUrl,
       getDescription: () => `${brand} ${name} - ${type}`

@@ -65,9 +65,9 @@ export class ProductRepository implements IProductRepository {
           brand: data.brand,
           price: data.price,
           type: data.type,
+          link: data.link || '', // Move link to top level
           specifications: {
-            category: data.category,
-            link: data.link
+            category: data.category
           },
           getDescription: function() {
             return `${this.brand} ${this.name} - ${this.type}`;
@@ -100,9 +100,9 @@ export class ProductRepository implements IProductRepository {
         brand: data.brand,
         price: data.price,
         type: data.type,
+        link: data.link || '', // Move link to top level
         specifications: {
-          category: data.category,
-          link: data.link
+          category: data.category
         },
         getDescription: function() {
           return `${this.brand} ${this.name} - ${this.type}`;
@@ -130,9 +130,9 @@ export class ProductRepository implements IProductRepository {
           brand: data.brand,
           price: data.price,
           type: data.type,
+          link: data.link || '', // Move link to top level
           specifications: {
-            category: data.category,
-            link: data.link
+            category: data.category
           },
           getDescription: function() {
             return `${this.brand} ${this.name} - ${this.type}`;
@@ -235,7 +235,7 @@ export class ProductRepository implements IProductRepository {
         price: product.price,
         type: product.type,
         category: product.specifications?.category || product.type,
-        link: product.specifications?.link || ''
+        link: product.link || ''
       };
       
       await setDoc(doc(db, this.PRODUCTS_COLLECTION, product.id), productData);
@@ -257,8 +257,8 @@ export class ProductRepository implements IProductRepository {
       if (productData.brand) updateData.brand = productData.brand;
       if (productData.price) updateData.price = productData.price;
       if (productData.type) updateData.type = productData.type;
+      if (productData.link) updateData.link = productData.link;
       if (productData.specifications?.category) updateData.category = productData.specifications.category;
-      if (productData.specifications?.link) updateData.link = productData.specifications.link;
       
       await updateDoc(doc(db, this.PRODUCTS_COLLECTION, id), updateData);
     } catch (error) {
