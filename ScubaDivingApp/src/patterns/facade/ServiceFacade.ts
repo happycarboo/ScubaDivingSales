@@ -6,6 +6,7 @@ import { IFirebaseService } from '../../services/firebase/interfaces/IFirebaseSe
 import { FirebaseService as FirebaseServiceImpl } from '../../services/firebase/FirebaseService';
 import { ProductRepository } from '../../services/firebase/repositories/ProductRepository';
 import { IProductRepository } from '../../services/firebase/interfaces/IProductRepository';
+import { RegulatorDetails, BCDDetails } from '../../services/firebase/repositories/ProductRepository';
 
 // Legacy subsystem classes - kept for backward compatibility
 class FirebaseService {
@@ -171,6 +172,57 @@ export class ServiceFacade {
       };
     } catch (error) {
       console.error('Error getting product with price comparison:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Gets regulator details for a specific product
+   */
+  async getRegulatorDetails(productId: string): Promise<RegulatorDetails | null> {
+    try {
+      return await this.productRepository.getRegulatorDetails(productId);
+    } catch (error) {
+      console.error('Error getting regulator details:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Gets BCD details for a specific product
+   */
+  async getBCDDetails(productId: string): Promise<BCDDetails | null> {
+    try {
+      return await this.productRepository.getBCDDetails(productId);
+    } catch (error) {
+      console.error('Error getting BCD details:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Gets product with full technical details
+   */
+  async getProductWithTechDetails(productId: string): Promise<{
+    product: Product;
+    techDetails: RegulatorDetails | BCDDetails | null;
+  }> {
+    try {
+      const product = await this.productRepository.getProduct(productId);
+      let techDetails = null;
+      
+      if (product.type === 'regulator') {
+        techDetails = await this.productRepository.getRegulatorDetails(productId);
+      } else if (product.type === 'bcd') {
+        techDetails = await this.productRepository.getBCDDetails(productId);
+      }
+      
+      return {
+        product,
+        techDetails
+      };
+    } catch (error) {
+      console.error('Error getting product with tech details:', error);
       throw error;
     }
   }

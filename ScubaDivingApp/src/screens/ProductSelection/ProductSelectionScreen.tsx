@@ -107,27 +107,23 @@ const ProductSelectionScreen = () => {
 
   // Render product card
   const renderProductCard = ({ item }: { item: ProductItem }) => {
-    // Use the factory to create the appropriate product type
-    const product = productFactory.createProduct(
-      item.type,
-      item.id,
-      item.name,
-      item.brand,
-      item.price,
-      item.specifications
-    );
-
     return (
       <TouchableOpacity 
         style={styles.productCard}
         onPress={() => handleProductPress(item)}
       >
-        <Text style={styles.productName}>{product.name}</Text>
-        <Text style={styles.productBrand}>{product.brand}</Text>
-        <Text style={styles.productPrice}>${product.price}</Text>
-        <Text style={styles.productDescription}>{product.getDescription()}</Text>
-        <View style={styles.productType}>
-          <Text style={styles.productTypeText}>{item.type.toUpperCase()}</Text>
+        <Text style={styles.productBrand}>{item.brand}</Text>
+        <Text style={styles.productName}>{item.name}</Text>
+        <Text style={styles.productPrice}>${item.price}</Text>
+        <View style={styles.productFooter}>
+          <View style={styles.productCategory}>
+            <Text style={styles.productCategoryText}>
+              {item.specifications?.category || item.type.toUpperCase()}
+            </Text>
+          </View>
+          <View style={styles.productType}>
+            <Text style={styles.productTypeText}>{item.type.toUpperCase()}</Text>
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -149,21 +145,14 @@ const ProductSelectionScreen = () => {
           style={[styles.filterButton, selectedType === 'regulator' && styles.selectedFilter]}
           onPress={() => setSelectedType(selectedType === 'regulator' ? null : 'regulator')}
         >
-          <Text style={styles.filterButtonText}>Regulators</Text>
+          <Text style={[styles.filterButtonText, selectedType === 'regulator' && styles.selectedFilterText]}>Regulators</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={[styles.filterButton, selectedType === 'bcd' && styles.selectedFilter]}
           onPress={() => setSelectedType(selectedType === 'bcd' ? null : 'bcd')}
         >
-          <Text style={styles.filterButtonText}>BCDs</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[styles.filterButton, selectedType === 'fin' && styles.selectedFilter]}
-          onPress={() => setSelectedType(selectedType === 'fin' ? null : 'fin')}
-        >
-          <Text style={styles.filterButtonText}>Fins</Text>
+          <Text style={[styles.filterButtonText, selectedType === 'bcd' && styles.selectedFilterText]}>BCDs</Text>
         </TouchableOpacity>
       </View>
       
@@ -242,6 +231,10 @@ const styles = StyleSheet.create({
   },
   filterButtonText: {
     fontWeight: '500',
+    color: '#333',
+  },
+  selectedFilterText: {
+    color: '#fff',
   },
   actionsContainer: {
     flexDirection: 'row',
@@ -251,7 +244,7 @@ const styles = StyleSheet.create({
   actionButton: {
     backgroundColor: '#0066cc',
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     borderRadius: 8,
     flex: 1,
     marginHorizontal: 4,
@@ -259,15 +252,11 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: '#fff',
-    fontWeight: '600',
-  },
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    fontWeight: '500',
   },
   productList: {
-    paddingBottom: 20,
+    paddingTop: 8,
+    paddingBottom: 24,
   },
   productCard: {
     backgroundColor: '#fff',
@@ -276,49 +265,70 @@ const styles = StyleSheet.create({
     margin: 8,
     flex: 1,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 3,
   },
   productName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 4,
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 8,
   },
   productBrand: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   productPrice: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: 'bold',
     color: '#0066cc',
-    marginBottom: 8,
-  },
-  productDescription: {
-    fontSize: 14,
-    color: '#444',
     marginBottom: 12,
   },
-  productType: {
-    backgroundColor: '#f0f0f0',
+  productFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  productCategory: {
     paddingVertical: 4,
     paddingHorizontal: 8,
+    backgroundColor: '#f0f0f0',
     borderRadius: 4,
-    alignSelf: 'flex-start',
+  },
+  productCategoryText: {
+    fontSize: 12,
+    color: '#666',
+  },
+  productType: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    backgroundColor: '#e0f0ff',
+    borderRadius: 4,
   },
   productTypeText: {
     fontSize: 12,
+    color: '#0066cc',
+  },
+  productDescription: {
+    fontSize: 14,
     color: '#666',
-    fontWeight: '500',
+    marginBottom: 12,
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    padding: 24,
   },
   emptyStateText: {
     fontSize: 16,

@@ -8,8 +8,38 @@ import { FirebaseService } from '../FirebaseService';
 import { Product } from '../../../patterns/factory/ProductFactory';
 import { IProductRepository } from '../interfaces/IProductRepository';
 
+// Interfaces for our product details
+export interface RegulatorDetails {
+  prod_id: string;
+  category: string;
+  temperature: string;
+  high_pressure_port: number;
+  low_pressure_port: number;
+  adjustable_airflow: string;
+  pre_dive_mode: string;
+  weights_base_on_yoke: number;
+  material: string;
+  dive_type: string;
+  airflow_at_200bar: string;
+}
+
+export interface BCDDetails {
+  prod_id: string;
+  category: string;
+  type: string;
+  weight_pocket: string;
+  quick_release: string;
+  no_pockets: number;
+  back_trim_pocket: string;
+  weight_kg: number;
+  has_size: string;
+  lift_capacity_base_on_largest_size_kg: number;
+}
+
 export class ProductRepository implements IProductRepository {
-  private readonly COLLECTION_NAME = 'products';
+  private readonly PRODUCTS_COLLECTION = 'products';
+  private readonly REGULATORS_COLLECTION = 'regulators';
+  private readonly BCDS_COLLECTION = 'bcds';
   private firebaseService: FirebaseService;
 
   constructor() {
@@ -23,7 +53,7 @@ export class ProductRepository implements IProductRepository {
   async getAllProducts(): Promise<Product[]> {
     try {
       const db = await this.getFirestore();
-      const productsCollection = collection(db, this.COLLECTION_NAME);
+      const productsCollection = collection(db, this.PRODUCTS_COLLECTION);
       const querySnapshot = await getDocs(productsCollection);
       
       const products: Product[] = [];
@@ -31,7 +61,17 @@ export class ProductRepository implements IProductRepository {
         const data = doc.data();
         products.push({
           id: doc.id,
-          ...data
+          name: data.model, // Using model field as name
+          brand: data.brand,
+          price: data.price,
+          type: data.type,
+          specifications: {
+            category: data.category,
+            link: data.link
+          },
+          getDescription: function() {
+            return `${this.brand} ${this.name} - ${this.type}`;
+          }
         } as Product);
       });
 
@@ -46,16 +86,27 @@ export class ProductRepository implements IProductRepository {
   async getProduct(id: string): Promise<Product> {
     try {
       const db = await this.getFirestore();
-      const productDoc = doc(db, this.COLLECTION_NAME, id);
+      const productDoc = doc(db, this.PRODUCTS_COLLECTION, id);
       const docSnap = await getDoc(productDoc);
 
       if (!docSnap.exists()) {
         throw new Error(`Product with ID ${id} not found`);
       }
 
+      const data = docSnap.data();
       return {
         id: docSnap.id,
-        ...docSnap.data()
+        name: data.model,
+        brand: data.brand,
+        price: data.price,
+        type: data.type,
+        specifications: {
+          category: data.category,
+          link: data.link
+        },
+        getDescription: function() {
+          return `${this.brand} ${this.name} - ${this.type}`;
+        }
       } as Product;
     } catch (error) {
       console.error(`Error getting product with ID ${id}:`, error);
@@ -66,7 +117,7 @@ export class ProductRepository implements IProductRepository {
   async getProductsByType(type: string): Promise<Product[]> {
     try {
       const db = await this.getFirestore();
-      const productsCollection = collection(db, this.COLLECTION_NAME);
+      const productsCollection = collection(db, this.PRODUCTS_COLLECTION);
       const q = query(productsCollection, where('type', '==', type));
       const querySnapshot = await getDocs(q);
 
@@ -75,7 +126,17 @@ export class ProductRepository implements IProductRepository {
         const data = doc.data();
         products.push({
           id: doc.id,
-          ...data
+          name: data.model,
+          brand: data.brand,
+          price: data.price,
+          type: data.type,
+          specifications: {
+            category: data.category,
+            link: data.link
+          },
+          getDescription: function() {
+            return `${this.brand} ${this.name} - ${this.type}`;
+          }
         } as Product);
       });
 
@@ -88,21 +149,63 @@ export class ProductRepository implements IProductRepository {
   }
 
   /**
+   * Get regulator details for a specific product ID
+   */
+  async getRegulatorDetails(productId: string): Promise<RegulatorDetails | null> {
+    try {
+      const db = await this.getFirestore();
+      const regulatorDoc = doc(db, this.REGULATORS_COLLECTION, productId);
+      const docSnap = await getDoc(regulatorDoc);
+
+      if (!docSnap.exists()) {
+        console.log(`No regulator details found for product ID ${productId}`);
+        return null;
+      }
+
+      return docSnap.data() as RegulatorDetails;
+    } catch (error) {
+      console.error(`Error getting regulator details for product ID ${productId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get BCD details for a specific product ID
+   */
+  async getBCDDetails(productId: string): Promise<BCDDetails | null> {
+    try {
+      const db = await this.getFirestore();
+      const bcdDoc = doc(db, this.BCDS_COLLECTION, productId);
+      const docSnap = await getDoc(bcdDoc);
+
+      if (!docSnap.exists()) {
+        console.log(`No BCD details found for product ID ${productId}`);
+        return null;
+      }
+
+      return docSnap.data() as BCDDetails;
+    } catch (error) {
+      console.error(`Error getting BCD details for product ID ${productId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Create a new product
    */
   async createProduct(product: Product): Promise<void> {
     try {
       const db = await this.getFirestore();
       const productData = {
-        name: product.name,
         brand: product.brand,
+        model: product.name,
         price: product.price,
         type: product.type,
-        specifications: product.specifications,
-        imageUrl: product.imageUrl
+        category: product.specifications?.category || product.type,
+        link: product.specifications?.link || ''
       };
       
-      await setDoc(doc(db, this.COLLECTION_NAME, product.id), productData);
+      await setDoc(doc(db, this.PRODUCTS_COLLECTION, product.id), productData);
     } catch (error) {
       console.error('Error creating product:', error);
       throw error;
@@ -117,14 +220,14 @@ export class ProductRepository implements IProductRepository {
       const db = await this.getFirestore();
       const updateData: Record<string, any> = {};
       
-      if (productData.name) updateData.name = productData.name;
+      if (productData.name) updateData.model = productData.name;
       if (productData.brand) updateData.brand = productData.brand;
       if (productData.price) updateData.price = productData.price;
       if (productData.type) updateData.type = productData.type;
-      if (productData.specifications) updateData.specifications = productData.specifications;
-      if (productData.imageUrl) updateData.imageUrl = productData.imageUrl;
+      if (productData.specifications?.category) updateData.category = productData.specifications.category;
+      if (productData.specifications?.link) updateData.link = productData.specifications.link;
       
-      await updateDoc(doc(db, this.COLLECTION_NAME, id), updateData);
+      await updateDoc(doc(db, this.PRODUCTS_COLLECTION, id), updateData);
     } catch (error) {
       console.error(`Error updating product ${id}:`, error);
       throw error;
@@ -137,7 +240,22 @@ export class ProductRepository implements IProductRepository {
   async deleteProduct(id: string): Promise<void> {
     try {
       const db = await this.getFirestore();
-      await deleteDoc(doc(db, this.COLLECTION_NAME, id));
+      await deleteDoc(doc(db, this.PRODUCTS_COLLECTION, id));
+      
+      // Also try to delete related records if they exist
+      try {
+        await deleteDoc(doc(db, this.REGULATORS_COLLECTION, id));
+        console.log(`Deleted regulator details for product ID ${id}`);
+      } catch (error) {
+        console.log(`No regulator details found for product ID ${id}`);
+      }
+      
+      try {
+        await deleteDoc(doc(db, this.BCDS_COLLECTION, id));
+        console.log(`Deleted BCD details for product ID ${id}`);
+      } catch (error) {
+        console.log(`No BCD details found for product ID ${id}`);
+      }
     } catch (error) {
       console.error(`Error deleting product ${id}:`, error);
       throw error;
