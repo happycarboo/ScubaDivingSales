@@ -154,6 +154,7 @@ export class ProductRepository implements IProductRepository {
   async getRegulatorDetails(productId: string): Promise<RegulatorDetails | null> {
     try {
       const db = await this.getFirestore();
+      console.log(`Attempting to fetch regulator details for product ID ${productId} from collection '${this.REGULATORS_COLLECTION}'`);
       const regulatorDoc = doc(db, this.REGULATORS_COLLECTION, productId);
       const docSnap = await getDoc(regulatorDoc);
 
@@ -162,7 +163,23 @@ export class ProductRepository implements IProductRepository {
         return null;
       }
 
-      return docSnap.data() as RegulatorDetails;
+      // Log success and the data received
+      const data = docSnap.data();
+      console.log(`Successfully retrieved regulator details for product ID ${productId}:`, data);
+      
+      return {
+        prod_id: data.prod_id || productId,
+        category: data.category || 'regulator',
+        temperature: data.temperature || 'Cold water',
+        high_pressure_port: data.high_pressure_port || 0,
+        low_pressure_port: data.low_pressure_port || 0,
+        adjustable_airflow: data.adjustable_airflow || 'NO',
+        pre_dive_mode: data.pre_dive_mode || 'NO',
+        weights_base_on_yoke: data.weights_base_on_yoke || 0,
+        material: data.material || '',
+        dive_type: data.dive_type || 'Recreational',
+        airflow_at_200bar: data.airflow_at_200bar || ''
+      };
     } catch (error) {
       console.error(`Error getting regulator details for product ID ${productId}:`, error);
       throw error;
@@ -175,6 +192,7 @@ export class ProductRepository implements IProductRepository {
   async getBCDDetails(productId: string): Promise<BCDDetails | null> {
     try {
       const db = await this.getFirestore();
+      console.log(`Attempting to fetch BCD details for product ID ${productId} from collection '${this.BCDS_COLLECTION}'`);
       const bcdDoc = doc(db, this.BCDS_COLLECTION, productId);
       const docSnap = await getDoc(bcdDoc);
 
@@ -183,7 +201,22 @@ export class ProductRepository implements IProductRepository {
         return null;
       }
 
-      return docSnap.data() as BCDDetails;
+      // Log success and the data received
+      const data = docSnap.data();
+      console.log(`Successfully retrieved BCD details for product ID ${productId}:`, data);
+      
+      return {
+        prod_id: data.prod_id || productId,
+        category: data.category || 'BCD',
+        type: data.type || 'Jacket',
+        weight_pocket: data.weight_pocket || 'No',
+        quick_release: data.quick_release || 'No',
+        no_pockets: data.no_pockets || 0,
+        back_trim_pocket: data.back_trim_pocket || 'No',
+        weight_kg: data.weight_kg || 0,
+        has_size: data.has_size || 'No',
+        lift_capacity_base_on_largest_size_kg: data.lift_capacity_base_on_largest_size_kg || 0
+      };
     } catch (error) {
       console.error(`Error getting BCD details for product ID ${productId}:`, error);
       throw error;

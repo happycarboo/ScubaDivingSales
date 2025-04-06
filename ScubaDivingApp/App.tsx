@@ -48,9 +48,10 @@ export default function App() {
         // Get the ServiceFacade instance
         const serviceFacade = ServiceFacade.getInstance();
         
-        // Enable real Firebase
-        const useRealFirebase = true;  // Changed to true to use real Firebase
+        // Always use real Firebase - this ensures we get data from the Firestore database
+        const useRealFirebase = true;
         
+        // Initialize the ServiceFacade with real Firebase
         await serviceFacade.initialize(useRealFirebase);
         console.log('ServiceFacade initialized, using real Firebase:', serviceFacade.isUsingRealFirebase());
         

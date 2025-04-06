@@ -89,8 +89,8 @@ export class ServiceFacade {
   // Real-time price scraper service
   private realTimePriceScraperService: IPriceScraperService;
   
-  // Use Firebase flag - set to false by default to avoid breaking changes
-  private useRealFirebase: boolean = false;
+  // Use Firebase flag - set to true by default to use real Firebase
+  private useRealFirebase: boolean = true;
 
   private constructor() {
     // Initialize legacy services
@@ -118,10 +118,14 @@ export class ServiceFacade {
   
   /**
    * Initializes the service facade and its dependencies
+   * @param useRealFirebase Flag to determine if real Firebase should be used
    */
-  public async initialize(): Promise<void> {
+  public async initialize(useRealFirebase: boolean = true): Promise<void> {
     if (!this.initialized) {
       try {
+        // Set the useRealFirebase flag
+        this.useRealFirebase = useRealFirebase;
+        
         await this.firebaseService.initialize();
         console.log('ServiceFacade initialized with Firebase');
         this.initialized = true;
@@ -246,7 +250,27 @@ export class ServiceFacade {
    */
   async getRegulatorDetails(productId: string): Promise<RegulatorDetails | null> {
     try {
-      return await this.productRepository.getRegulatorDetails(productId);
+      // Only attempt to get real regulator details if useRealFirebase is true
+      if (this.useRealFirebase) {
+        const regulatorDetails = await this.productRepository.getRegulatorDetails(productId);
+        return regulatorDetails;
+      } else {
+        // Return mock regulator details when not using real Firebase
+        console.log('Using mock regulator details for product ID:', productId);
+        return {
+          prod_id: productId,
+          category: 'regulator',
+          temperature: 'Cold water',
+          high_pressure_port: productId === '1' ? 2 : productId === '2' ? 1 : 2,
+          low_pressure_port: productId === '1' ? 5 : productId === '2' ? 4 : 3,
+          adjustable_airflow: productId === '1' ? 'YES' : 'NO',
+          pre_dive_mode: productId === '1' || productId === '3' ? 'YES' : 'NO',
+          weights_base_on_yoke: productId === '1' ? 1310 : productId === '2' ? 871 : 1041,
+          material: productId === '1' ? 'Carbon fibre front' : productId === '2' ? 'Chrome Plated' : 'Satin',
+          dive_type: productId === '1' ? 'Recreational / Tech / Contaminated' : 'Recreational',
+          airflow_at_200bar: productId === '1' ? '1800 l/min' : productId === '2' ? '1400 l/min' : '1500 l/min'
+        };
+      }
     } catch (error) {
       console.error('Error getting regulator details:', error);
       throw error;
@@ -258,7 +282,26 @@ export class ServiceFacade {
    */
   async getBCDDetails(productId: string): Promise<BCDDetails | null> {
     try {
-      return await this.productRepository.getBCDDetails(productId);
+      // Only attempt to get real BCD details if useRealFirebase is true
+      if (this.useRealFirebase) {
+        const bcdDetails = await this.productRepository.getBCDDetails(productId);
+        return bcdDetails;
+      } else {
+        // Return mock BCD details when not using real Firebase
+        console.log('Using mock BCD details for product ID:', productId);
+        return {
+          prod_id: productId,
+          category: 'BCD',
+          type: productId === '5' ? 'Backplate' : 'Jacket',
+          weight_pocket: 'Yes',
+          quick_release: productId === '5' ? 'No' : 'Yes',
+          no_pockets: 2,
+          back_trim_pocket: 'Yes',
+          weight_kg: productId === '4' ? 2.7 : productId === '5' ? 2.3 : 2.8,
+          has_size: 'Yes',
+          lift_capacity_base_on_largest_size_kg: productId === '4' ? 17.3 : productId === '5' ? 13.2 : 16.3
+        };
+      }
     } catch (error) {
       console.error('Error getting BCD details:', error);
       throw error;
@@ -277,9 +320,9 @@ export class ServiceFacade {
       let techDetails = null;
       
       if (product.type === 'regulator') {
-        techDetails = await this.productRepository.getRegulatorDetails(productId);
+        techDetails = await this.getRegulatorDetails(productId);
       } else if (product.type === 'bcd') {
-        techDetails = await this.productRepository.getBCDDetails(productId);
+        techDetails = await this.getBCDDetails(productId);
       }
       
       return {
