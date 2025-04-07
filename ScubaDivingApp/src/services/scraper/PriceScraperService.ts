@@ -45,12 +45,13 @@ export class PriceScraperService implements IPriceScraperService {
     const now = new Date();
     
     try {
-      // For demo purposes, simulate network request with delay (2-5 seconds)
-      const delay = Math.floor(Math.random() * 3000) + 2000;
+      // For demo purposes, simulate network request with shorter delay (1-3 seconds)
+      // Note: Keep under 3 seconds to ensure we complete within our 4-second demo window
+      const delay = Math.floor(Math.random() * 2000) + 1000;
       await new Promise(resolve => setTimeout(resolve, delay));
       
-      // Simulate random failure for Competitor B (30% chance)
-      const failCompetitorB = Math.random() < 0.3;
+      // Simulate random failure for Competitor B (10% chance) - reduced for demo
+      const failCompetitorB = Math.random() < 0.1;
       
       // Create result with successful fetches for A and C, and conditional B
       const competitorPrices: Record<string, CompetitorPrice> = {

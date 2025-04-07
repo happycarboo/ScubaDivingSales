@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { 
   View, 
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  ActivityIndicator 
+  ActivityIndicator,
+  Animated,
+  Easing
 } from 'react-native';
 import { ServiceFacade } from '../../patterns/facade/ServiceFacade';
 import { CompetitorPrice } from '../../services/scraper/interfaces/IPriceScraperService';
@@ -20,73 +22,109 @@ const CompetitorPricesComponent: React.FC<CompetitorPricesComponentProps> = ({
   productPrice,
   onPriceComparisonPressed
 }) => {
-  const [competitorPrices, setCompetitorPrices] = useState<Record<string, CompetitorPrice>>({});
+  // States for demo
   const [isFetching, setIsFetching] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [fetchStatus, setFetchStatus] = useState<'idle' | 'fetching' | 'success' | 'timeout' | 'error'>('idle');
+  const [showCompletion, setShowCompletion] = useState(false);
+  const [fetchComplete, setFetchComplete] = useState(false);
   
-  // Use service facade for data fetching
-  const serviceFacade = ServiceFacade.getInstance();
+  // Animation values
+  const flashAnim = useRef(new Animated.Value(0)).current;
+  const completionAnim = useRef(new Animated.Value(0)).current;
   
-  // Load initial competitor prices
+  // Get competitor prices based on product price
+  const competitorPrices = {
+    'Competitor A': {
+      competitor: 'Competitor A',
+      price: productPrice * 1.1, // 10% higher
+      sourceUrl: 'https://www.example.com/competitor-a',
+      lastUpdated: new Date(),
+      isLive: true
+    },
+    'Competitor B': {
+      competitor: 'Competitor B',
+      price: productPrice * 0.95, // 5% lower
+      sourceUrl: 'https://www.example.com/competitor-b',
+      lastUpdated: new Date(),
+      isLive: true
+    },
+    'Competitor C': {
+      competitor: 'Competitor C',
+      price: productPrice * 1.05, // 5% higher
+      sourceUrl: 'https://www.example.com/competitor-c',
+      lastUpdated: new Date(),
+      isLive: true
+    }
+  };
+  
+  // Flash animation during fetching
   useEffect(() => {
-    const loadInitialPrices = async () => {
-      try {
-        // First get any cached prices
-        setFetchStatus('fetching');
-        const response = await serviceFacade.fetchRealTimeCompetitorPrices(productId);
-        setCompetitorPrices(response.competitorPrices);
-        setIsFetching(response.isFetching);
-        setInitialLoading(false);
-        
-        // Set a timeout to stop fetching after 15 seconds if no response
-        const fetchTimeout = setTimeout(() => {
-          if (isFetching) {
-            console.log('Fetching competitor prices timed out');
-            setIsFetching(false);
-            setFetchStatus('timeout');
-          }
-        }, 15000);
-        
-        // Check for updated prices every 3 seconds while fetching
-        const checkInterval = setInterval(async () => {
-          if (isFetching) {
-            const cachedPrices = await serviceFacade.getLastFetchedCompetitorPrices(productId);
-            if (cachedPrices) {
-              setCompetitorPrices(cachedPrices);
-              
-              // If all prices are live, stop fetching
-              const allLive = Object.values(cachedPrices).every(price => price.isLive);
-              if (allLive) {
-                setIsFetching(false);
-                setFetchStatus('success');
-                clearInterval(checkInterval);
-                clearTimeout(fetchTimeout);
-              }
-            }
-          } else {
-            clearInterval(checkInterval);
-            clearTimeout(fetchTimeout);
-          }
-        }, 3000);
-        
-        // Cleanup interval and timeout
-        return () => {
-          clearInterval(checkInterval);
-          clearTimeout(fetchTimeout);
-        };
-      } catch (error) {
-        console.error('Error loading competitor prices:', error);
-        setInitialLoading(false);
-        setIsFetching(false);
-        setFetchStatus('error');
-      }
-    };
-    
-    loadInitialPrices();
-  }, [productId]);
+    if (isFetching) {
+      // Create a repeating flash animation
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(flashAnim, {
+            toValue: 1,
+            duration: 500,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: false
+          }),
+          Animated.timing(flashAnim, {
+            toValue: 0,
+            duration: 500,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: false
+          })
+        ])
+      ).start();
+    } else {
+      // Stop animation when not fetching
+      flashAnim.stopAnimation();
+      flashAnim.setValue(0);
+    }
+  }, [isFetching]);
   
-  // Format the date to a readable string
+  // Demo fetching process
+  const demoFetchPrices = () => {
+    // Reset states
+    setIsFetching(true);
+    setShowCompletion(false);
+    setFetchComplete(false);
+    
+    // Simulate network request (4 seconds)
+    setTimeout(() => {
+      setIsFetching(false);
+      
+      // Show completion message
+      setShowCompletion(true);
+      
+      // Animate completion message
+      Animated.timing(completionAnim, {
+        toValue: 1,
+        duration: 400,
+        easing: Easing.out(Easing.back(1.5)),
+        useNativeDriver: false
+      }).start();
+      
+      // Hide completion message after 1 second and show results
+      setTimeout(() => {
+        Animated.timing(completionAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: false
+        }).start(() => {
+          setShowCompletion(false);
+          setFetchComplete(true);
+        });
+      }, 1000);
+    }, 4000);
+  };
+  
+  // Initialize on mount
+  useEffect(() => {
+    demoFetchPrices();
+  }, []);
+  
+  // Format date to readable string
   const formatDate = (date: Date) => {
     return date.toLocaleString('en-US', { 
       month: 'short', 
@@ -96,27 +134,17 @@ const CompetitorPricesComponent: React.FC<CompetitorPricesComponentProps> = ({
     });
   };
   
-  // Start a new price fetch
-  const handleRefreshPrices = async () => {
-    try {
-      setIsFetching(true);
-      setFetchStatus('fetching');
-      await serviceFacade.fetchRealTimeCompetitorPrices(productId);
-    } catch (error) {
-      console.error('Error refreshing prices:', error);
-      setIsFetching(false);
-      setFetchStatus('error');
-    }
-  };
+  // Background color for fetching container with animation
+  const fetchingBackgroundColor = flashAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#f8f8f8', '#e6f2ff']
+  });
   
-  if (initialLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0066cc" />
-        <Text style={styles.loadingText}>Loading competitor prices...</Text>
-      </View>
-    );
-  }
+  // Animation for completion message
+  const completionScale = completionAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.5, 1]
+  });
   
   return (
     <View style={styles.container}>
@@ -124,7 +152,7 @@ const CompetitorPricesComponent: React.FC<CompetitorPricesComponentProps> = ({
         <Text style={styles.sectionTitle}>Competitor Prices</Text>
         <TouchableOpacity 
           style={styles.refreshButton}
-          onPress={handleRefreshPrices}
+          onPress={demoFetchPrices}
           disabled={isFetching}
         >
           <Text style={styles.refreshButtonText}>
@@ -134,32 +162,41 @@ const CompetitorPricesComponent: React.FC<CompetitorPricesComponentProps> = ({
       </View>
       
       {isFetching && (
-        <View style={styles.fetchingContainer}>
+        <Animated.View style={[
+          styles.fetchingContainer, 
+          { backgroundColor: fetchingBackgroundColor }
+        ]}>
           <ActivityIndicator size="small" color="#0066cc" />
           <Text style={styles.fetchingText}>Fetching live prices...</Text>
-        </View>
+        </Animated.View>
       )}
       
-      {!isFetching && fetchStatus === 'timeout' && (
-        <View style={styles.messageContainer}>
-          <Text style={styles.warningText}>
-            Fetching timed out. Showing last known prices.
-          </Text>
-        </View>
+      {showCompletion && (
+        <Animated.View style={[
+          styles.completionContainer,
+          { 
+            transform: [{ scale: completionScale }],
+            opacity: completionAnim 
+          }
+        ]}>
+          <Text style={styles.completionText}>Completed!</Text>
+        </Animated.View>
       )}
       
-      {!isFetching && fetchStatus === 'error' && (
-        <View style={styles.messageContainer}>
-          <Text style={styles.errorText}>
-            Error fetching prices. Please try again.
-          </Text>
-        </View>
-      )}
-      
-      {Object.entries(competitorPrices).length > 0 ? (
+      {fetchComplete && (
         <View style={styles.pricesContainer}>
-          {Object.entries(competitorPrices).map(([competitor, data]) => (
-            <View key={competitor} style={styles.priceRow}>
+          {Object.entries(competitorPrices).map(([competitor, data], index) => (
+            <Animated.View 
+              key={competitor} 
+              style={[
+                styles.priceRow,
+                { 
+                  // Simple styling without animation properties
+                  opacity: 1,
+                  transform: [{ translateX: 0 }]
+                }
+              ]}
+            >
               <View style={styles.competitorInfo}>
                 <Text style={styles.competitorName}>{competitor}</Text>
                 <Text style={styles.timestamp}>
@@ -177,11 +214,9 @@ const CompetitorPricesComponent: React.FC<CompetitorPricesComponentProps> = ({
                 {data.price > productPrice && " (Higher)"}
                 {data.price < productPrice && " (Lower)"}
               </Text>
-            </View>
+            </Animated.View>
           ))}
         </View>
-      ) : (
-        <Text style={styles.noDataText}>No competitor price data available</Text>
       )}
       
       <TouchableOpacity 
@@ -232,7 +267,6 @@ const styles = StyleSheet.create({
   fetchingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8f8f8',
     padding: 10,
     borderRadius: 6,
     marginBottom: 10,
@@ -241,6 +275,18 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     color: '#666',
     fontSize: 14,
+  },
+  completionContainer: {
+    backgroundColor: '#dff6dd',
+    padding: 10,
+    borderRadius: 6,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  completionText: {
+    color: '#107C10',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   priceRow: {
     flexDirection: 'row',
@@ -272,11 +318,8 @@ const styles = StyleSheet.create({
   lowerPrice: {
     color: '#cc0000', // Red for prices lower than ours (competition is cheaper)
   },
-  noDataText: {
-    padding: 20,
-    textAlign: 'center',
-    color: '#666',
-    fontStyle: 'italic',
+  pricesContainer: {
+    marginTop: 10,
   },
   compareButton: {
     backgroundColor: '#0066cc',
@@ -289,25 +332,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-  },
-  messageContainer: {
-    padding: 10,
-    borderRadius: 6,
-    marginBottom: 10,
-    backgroundColor: '#f8f8f8',
-  },
-  warningText: {
-    color: '#e67e22',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  errorText: {
-    color: '#e74c3c',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  pricesContainer: {
-    marginTop: 10,
   },
 });
 
