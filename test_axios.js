@@ -1,0 +1,1 @@
+const axios = require('axios'); async function test() { try { const url = 'https://www.lazada.sg/products/dive-box-stainless-steel-shaker-i2712954458-s18273448333.html'; console.log('Testing URL:', url); const res = await axios.get(url); console.log('Success! Length:', res.data.length); } catch (e) { console.error('Error:', e.message); } } test();
