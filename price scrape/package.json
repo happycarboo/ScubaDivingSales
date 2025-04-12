@@ -1,0 +1,20 @@
+{
+  "name": "price-scraper",
+  "version": "1.0.0",
+  "description": "Script to scrape Shearwater Peregrine price from Lazada",
+  "main": "fetch_price.js",
+  "scripts": {
+    "test": "node fetch_price.js",
+    "test-axios": "node fetch_price_axios.js",
+    "extract-source": "node extract_from_source.js",
+    "lazada-extract": "node lazada_price_extractor.js",
+    "run-all": "bash run-all.sh",
+    "price": "node price_extractor.js"
+  },
+  "dependencies": {
+    "axios": "^1.8.4",
+    "cheerio": "^1.0.0",
+    "csv-parse": "^5.6.0",
+    "puppeteer": "^19.7.2"
+  }
+}

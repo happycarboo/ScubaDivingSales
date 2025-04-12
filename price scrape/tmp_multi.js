@@ -1,0 +1,1 @@
+console.log("Multi-URL version"); require("./simple_price_extractor");
