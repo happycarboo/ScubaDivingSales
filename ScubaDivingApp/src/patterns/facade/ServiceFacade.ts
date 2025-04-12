@@ -14,6 +14,8 @@ import { IProductUrlRepository } from '../../services/scraper/interfaces/IProduc
 import { DummyProductUrlRepository } from '../../services/scraper/repositories/DummyProductUrlRepository';
 import { ComprehensiveStrategyRegistry } from '../../services/scraper/registry/ComprehensiveStrategyRegistry';
 import { ProductInfo } from '../../services/scraper/interfaces/IProductInfoExtractor';
+import { IProductImageService } from '../../services/scraper/interfaces/IProductImageService';
+import { ScrapedProductImageService } from '../../services/scraper/ScrapedProductImageService';
 
 /**
  * Legacy Firebase service for backward compatibility
@@ -470,6 +472,123 @@ export class ServiceFacade {
     } catch (error) {
       console.error('Error extracting and downloading product info:', error);
       return null;
+    }
+  }
+
+  // Add these getter methods for dependencies
+  
+  /**
+   * Gets the ComprehensiveStrategyRegistry instance
+   * @returns The ComprehensiveStrategyRegistry instance
+   */
+  getComprehensiveStrategyRegistry(): ComprehensiveStrategyRegistry {
+    return this.comprehensiveStrategyRegistry;
+  }
+  
+  /**
+   * Gets the IProductUrlRepository instance
+   * @returns The IProductUrlRepository instance
+   */
+  getProductUrlRepository(): IProductUrlRepository {
+    return this.productUrlRepository;
+  }
+  
+  // Add product image methods
+  
+  /**
+   * Gets the product image service
+   * @returns The product image service instance
+   */
+  private getProductImageService(): IProductImageService {
+    // Currently using the scraped implementation, can be replaced with Firebase later
+    return ScrapedProductImageService.getInstance();
+  }
+  
+  /**
+   * Gets the product image service for direct access to advanced functionality
+   * @returns The IProductImageService instance
+   */
+  public getProductImageServiceInstance(): IProductImageService {
+    return this.getProductImageService();
+  }
+  
+  /**
+   * Gets a product image URL
+   * @param productId The product ID
+   * @param productUrl Optional URL to the product page
+   * @returns Promise with the image URL or null if not found
+   */
+  async getProductImageUrl(productId: string, productUrl?: string): Promise<string | null> {
+    try {
+      return await this.getProductImageService().getProductImageUrl(productId, productUrl);
+    } catch (error) {
+      console.error(`Error getting product image URL for product ${productId}:`, error);
+      return null;
+    }
+  }
+  
+  /**
+   * Gets a product image URI (local file path)
+   * @param productId The product ID
+   * @param productUrl Optional URL to the product page
+   * @param productType Optional product type
+   * @returns Promise with the local image URI or null if not available
+   */
+  async getProductImageUri(
+    productId: string, 
+    productUrl?: string, 
+    productType?: string
+  ): Promise<string | null> {
+    try {
+      return await this.getProductImageService().getProductImageUri(productId, productUrl, productType);
+    } catch (error) {
+      console.error(`Error getting product image URI for product ${productId}:`, error);
+      return null;
+    }
+  }
+  
+  /**
+   * Shares a cached image from one product to another
+   * @param sourceProductId Source product ID with the cached image
+   * @param targetProductId Target product ID to share the image with
+   * @returns Promise with success flag
+   */
+  async shareProductImage(sourceProductId: string, targetProductId: string): Promise<boolean> {
+    try {
+      return await this.getProductImageService().shareProductImage(sourceProductId, targetProductId);
+    } catch (error) {
+      console.error(`Error sharing product image from ${sourceProductId} to ${targetProductId}:`, error);
+      return false;
+    }
+  }
+  
+  /**
+   * Gets all cached product images
+   * @returns Promise with a map of product IDs to image URIs
+   */
+  async getCachedProductImages(): Promise<Record<string, string>> {
+    try {
+      return await this.getProductImageService().getCachedProductImages();
+    } catch (error) {
+      console.error('Error getting cached product images:', error);
+      return {};
+    }
+  }
+  
+  /**
+   * Prefetches product images for a list of products
+   * @param productIds List of product IDs
+   * @param productUrls Optional mapping of product IDs to URLs
+   * @returns Promise that resolves when prefetching is complete
+   */
+  async prefetchProductImages(
+    productIds: string[],
+    productUrls?: Record<string, string>
+  ): Promise<void> {
+    try {
+      await this.getProductImageService().prefetchProductImages(productIds, productUrls);
+    } catch (error) {
+      console.error('Error prefetching product images:', error);
     }
   }
 } 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -8,9 +8,10 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
-  Linking
+  Linking,
+  Image
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { ProductFactory } from '../../patterns/factory/ProductFactory';
 import { ServiceFacade } from '../../patterns/facade/ServiceFacade';
 import { ProductSelectionScreenNavigationProp } from '../../types/navigation';
@@ -25,6 +26,7 @@ type ProductItem = {
   specifications: Record<string, any>;
   getDescription(): string;
   link: string;
+  imageUri?: string | null;
 };
 
 const ProductSelectionScreen = () => {
@@ -35,6 +37,8 @@ const ProductSelectionScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [priceRange, setPriceRange] = useState({ min: 0, max: 2000 });
   const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [imagesLoading, setImagesLoading] = useState<Record<string, boolean>>({});
+  const [cachedImages, setCachedImages] = useState<Record<string, string>>({});
 
   // Create instances of our patterns
   const productFactory = new ProductFactory();
@@ -114,6 +118,123 @@ const ProductSelectionScreen = () => {
     }
   }, [products]);
 
+  // Add a useFocusEffect to refresh images when returning to the screen
+  useFocusEffect(
+    useCallback(() => {
+      const refreshCachedImages = async () => {
+        try {
+          // Get all cached images
+          const images = await serviceFacade.getCachedProductImages();
+          setCachedImages(images);
+          
+          // Update products with image URIs
+          if (Object.keys(images).length > 0) {
+            console.log(`Found ${Object.keys(images).length} cached images, updating products`);
+            
+            setProducts(currentProducts => 
+              currentProducts.map(product => ({
+                ...product,
+                imageUri: images[product.id] || product.imageUri
+              }))
+            );
+            
+            setFilteredProducts(currentFiltered => 
+              currentFiltered.map(product => ({
+                ...product,
+                imageUri: images[product.id] || product.imageUri
+              }))
+            );
+          }
+        } catch (error) {
+          console.error('Error refreshing cached images:', error);
+        }
+      };
+      
+      refreshCachedImages();
+    }, [])
+  );
+
+  // Modify loadProductImages to share between similar products
+  useEffect(() => {
+    const loadProductImages = async () => {
+      if (products.length === 0) return;
+      
+      try {
+        console.log('Loading product images...');
+        
+        // Create a tracking object for image loading states
+        const loadingStates: Record<string, boolean> = {};
+        products.forEach(product => {
+          loadingStates[product.id] = true;
+        });
+        setImagesLoading(loadingStates);
+        
+        // First try to get all cached images
+        const cachedImages = await serviceFacade.getCachedProductImages();
+        setCachedImages(cachedImages);
+        
+        // Group products by type to help with sharing images
+        const productsByType: Record<string, ProductItem[]> = {};
+        products.forEach(product => {
+          if (!productsByType[product.type]) {
+            productsByType[product.type] = [];
+          }
+          productsByType[product.type].push(product);
+        });
+        
+        // Load images for each product
+        const updatedProducts = await Promise.all(
+          products.map(async product => {
+            // Skip if we already have the image in cache
+            if (cachedImages[product.id]) {
+              loadingStates[product.id] = false;
+              setImagesLoading({...loadingStates});
+              return { ...product, imageUri: cachedImages[product.id] };
+            }
+            
+            // Try to get the image
+            const imageUri = await serviceFacade.getProductImageUri(product.id, product.link);
+            loadingStates[product.id] = false;
+            setImagesLoading({...loadingStates});
+            
+            // If we got an image, try to share with similar products of the same type
+            if (imageUri && productsByType[product.type]) {
+              const similarProducts = productsByType[product.type].filter(p => 
+                p.id !== product.id && !cachedImages[p.id] && 
+                (p.name.includes(product.name.slice(0, 5)) || product.name.includes(p.name.slice(0, 5)))
+              );
+              
+              for (const similarProduct of similarProducts) {
+                await serviceFacade.shareProductImage(product.id, similarProduct.id);
+              }
+            }
+            
+            // Return a new product object with the image URI
+            return {
+              ...product,
+              imageUri
+            };
+          })
+        );
+        
+        // Update products with image URIs
+        setProducts(updatedProducts);
+        setFilteredProducts(
+          filteredProducts.map(product => {
+            const updatedProduct = updatedProducts.find(p => p.id === product.id);
+            return updatedProduct || product;
+          })
+        );
+        
+        console.log('Product images loaded');
+      } catch (error) {
+        console.error('Error loading product images:', error);
+      }
+    };
+
+    loadProductImages();
+  }, [products.length]);
+
   // Navigate to product details
   const handleProductPress = (product: ProductItem) => {
     navigation.navigate('ProductDetails', { productId: product.id });
@@ -173,7 +294,8 @@ const ProductSelectionScreen = () => {
       id: item.id,
       name: item.name,
       hasLink: 'link' in item,
-      link: item.link
+      link: item.link,
+      imageUri: item.imageUri
     });
     
     return (
@@ -184,6 +306,24 @@ const ProductSelectionScreen = () => {
         <TouchableOpacity style={styles.selectCheckbox} onPress={() => handleSelectProduct(item.id)}>
           <Text>☑️</Text>
         </TouchableOpacity>
+        
+        {/* Product Thumbnail */}
+        <View style={styles.thumbnailContainer}>
+          {imagesLoading[item.id] ? (
+            <ActivityIndicator size="small" color="#0066cc" style={styles.thumbnailLoader} />
+          ) : item.imageUri ? (
+            <Image
+              source={{ uri: item.imageUri }}
+              style={styles.thumbnail}
+              resizeMode="contain"
+            />
+          ) : (
+            <View style={styles.placeholderThumbnail}>
+              <Text style={styles.placeholderText}>{item.brand.charAt(0)}{item.name.charAt(0)}</Text>
+            </View>
+          )}
+        </View>
+        
         <Text style={styles.productBrand}>{item.brand}</Text>
         <Text style={styles.productName}>{item.name}</Text>
         <Text style={styles.productPrice}>${item.price}</Text>
@@ -429,6 +569,35 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
+  },
+  thumbnailContainer: {
+    width: '100%',
+    height: 120,
+    marginBottom: 12,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  thumbnail: {
+    width: '100%',
+    height: '100%',
+  },
+  thumbnailLoader: {
+    position: 'absolute',
+  },
+  placeholderThumbnail: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#e0e0e0',
+  },
+  placeholderText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#888',
   },
 });
 

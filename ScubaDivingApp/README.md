@@ -472,75 +472,91 @@ export class ConfigurableServiceFacade {
 }
 ```
 
-## New Feature: Product Image and Name Extraction
+## New Feature: Product Thumbnails
 
-The app now includes functionality to extract product images and names from ScubaWarehouse product pages. This feature enhances the product information available to sales representatives.
+The app now includes functionality to automatically display product thumbnails in the product gallery and product details screens. This feature enhances the visual representation of products to help sales representatives quickly identify items.
 
 ### Architecture
 
-The image and name extraction functionality follows the same SOLID principles and Strategy pattern as the price extraction:
+The product thumbnail functionality follows the same SOLID principles and design patterns as the existing codebase:
 
-1. **IProductInfoExtractor Interface**: Defines the contract for extracting product names and images
-2. **IComprehensivePlatformStrategy Interface**: Extends both price extraction and product info extraction capabilities
-3. **ScubaWarehouseComprehensiveStrategy**: Implements the comprehensive strategy for ScubaWarehouse
-4. **ComprehensiveStrategyRegistry**: Manages and provides access to all comprehensive strategies
-5. **ServiceFacade Extension**: Provides simplified access to the new functionality
+1. **Separation of Concerns**: Image caching, retrieval, and display logic are kept separate
+2. **Interface Segregation**: Specific interfaces for product image services
+3. **Dependency Inversion**: Reliance on abstractions rather than concrete implementations
+4. **Strategy Pattern**: Different strategies for image retrieval (scraping now, Firebase later)
+5. **Facade Pattern**: Simplified access through the ServiceFacade
 
-### Key Features
+### Key Components
 
-1. **Product Name Extraction**: Extracts the product name from ScubaWarehouse product pages
-2. **Product Image URL Extraction**: Extracts the product image URL from ScubaWarehouse product pages
-3. **Image Download**: Downloads product images to local storage for offline access
-4. **Category Organization**: Organizes downloaded images by product category
-5. **JSON Output**: Provides structured JSON output with product information and file paths
-
-### Usage
-
-```typescript
-// Get the ServiceFacade instance
-const serviceFacade = ServiceFacade.getInstance();
-
-// Extract a product name
-const productName = await serviceFacade.extractProductName('https://scubawarehouse.com.sg/product/scubapro-level-bcd/');
-
-// Extract a product image URL
-const imageUrl = await serviceFacade.extractProductImageUrl('https://scubawarehouse.com.sg/product/scubapro-level-bcd/');
-
-// Extract and download all product info
-const productInfo = await serviceFacade.extractAndDownloadProductInfo(
-  'https://scubawarehouse.com.sg/product/scubapro-level-bcd/',
-  'BCD'
-);
-
-// Access the downloaded information
-console.log(`Product Name: ${productInfo.name}`);
-console.log(`Image URL: ${productInfo.imageUrl}`);
-console.log(`Local Image Path: ${productInfo.localImagePath}`);
-```
-
-### Testing the Feature
-
-1. Navigate to the Product Selection screen
-2. Click on the "Test Image Extraction" button
-3. Enter a ScubaWarehouse product URL
-4. Click on "Extract & Download All" to test the full functionality
+1. **IProductImageService Interface**: Defines the contract for product image services
+2. **ScrapedProductImageService**: Current implementation that uses the web scraping functionality
+3. **ImageCache Utility**: Manages caching of product images for efficient retrieval
+4. **ServiceFacade Extensions**: New methods added to the facade for working with product images
 
 ### Implementation Details
 
-The implementation follows the Strategy pattern and uses both HTTP/Cheerio for initial extraction and Puppeteer as a fallback:
+The implementation leverages the existing product image extraction functionality and adds several improvements:
 
-1. **HTTP/Cheerio Method**: Fast extraction using axios and cheerio
-2. **Puppeteer Fallback**: Reliable extraction using browser automation if needed
-3. **File System Integration**: Uses expo-file-system for image download and storage
-4. **Category Organization**: Creates category directories for better organization
+1. **Efficient Caching**: Images are cached both in memory and on the file system
+2. **Asynchronous Loading**: Images are loaded asynchronously to avoid blocking the UI
+3. **Fallback Mechanism**: Displays placeholders when images are unavailable
+4. **Type Organization**: Images are organized by product type for better management
+5. **Image Sharing**: Similar products can share cached images for improved efficiency
+6. **Error Handling**: Robust error handling with fallbacks for 404 errors and other issues
+7. **Automatic Updates**: Images are automatically refreshed when returning to screens
+8. **Fallback Images**: Predefined list of fallback images for known products
 
-### Extending for Other Platforms
+### Usage
 
-To add support for other platforms:
+The product thumbnails are automatically loaded and displayed in:
 
-1. Create a new strategy implementing `IComprehensivePlatformStrategy`
-2. Register the strategy with `ComprehensiveStrategyRegistry`
-3. Update the UI to handle platform-specific details if needed
+1. **Product Selection Screen**: Each product card shows a thumbnail image
+2. **Product Details Screen**: The product page shows a larger product image
+
+No additional configuration is needed as the system automatically uses:
+1. The product's ID to find cached images
+2. The product's URL to scrape images when needed
+
+### Future Firebase Integration
+
+The implementation is designed to be easily replaceable with Firebase Storage in the future:
+
+1. Create a new class implementing `IProductImageService` that uses Firebase Storage
+2. Update the `ServiceFacade.getProductImageService()` method to return the Firebase implementation
+3. No other code changes would be needed as all components depend on the abstraction
+
+### Prerequisites
+
+For the thumbnail functionality to work correctly, ensure you have the following dependencies installed:
+
+```bash
+# Required packages for the thumbnail functionality
+npm install expo-file-system react-native-cheerio axios
+```
+
+- **expo-file-system**: Used for storing and managing cached images
+- **react-native-cheerio**: Used for HTML parsing to extract image URLs
+- **axios**: Used for HTTP requests to product pages
+
+You can check if these dependencies are installed with:
+
+```bash
+npm list expo-file-system react-native-cheerio axios
+```
+
+### Common Issues and Solutions
+
+If you encounter image loading issues:
+
+1. **Missing Images**: Some products may not show images immediately. The images are loaded asynchronously and will appear after a few moments. The app includes fallback mechanisms to retry loading.
+
+2. **Image Caching Issues**: If images don't appear after returning to a screen, try force refreshing:
+   ```javascript
+   // To manually clear the image cache
+   await serviceFacade.getProductImageService().clearAllProductImageCache();
+   ```
+
+3. **Web Scraping Failures**: If the original website changes its structure, extraction might fail. Update the selectors in `ScubaWarehouseComprehensiveStrategy.ts` to match the new structure.
 
 ## Future Enhancements for Price Scraping
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { RootStackParamList, ProductDetailsScreenNavigationProp } from '../../types/navigation';
 import { ServiceFacade } from '../../patterns/facade/ServiceFacade';
@@ -18,6 +18,8 @@ const ProductDetailsScreen = () => {
   const [techDetails, setTechDetails] = useState<any>(null);
   const [competitorPrices, setCompetitorPrices] = useState<Record<string, CompetitorPrice> | null>(null);
   const [pricesLoading, setPricesLoading] = useState(false);
+  const [productImage, setProductImage] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(false);
   
   const serviceFacade = ServiceFacade.getInstance();
 
@@ -32,6 +34,9 @@ const ProductDetailsScreen = () => {
         // Get last fetched competitor prices (if any)
         const prices = await serviceFacade.getLastFetchedCompetitorPrices(productId);
         setCompetitorPrices(prices);
+        
+        // Try to load the product image
+        await loadProductImage(result.product);
       } catch (error) {
         console.error('Error loading product details:', error);
       } finally {
@@ -41,6 +46,55 @@ const ProductDetailsScreen = () => {
 
     fetchProductDetails();
   }, [productId]);
+
+  const loadProductImage = async (product: any) => {
+    if (!product) return;
+    
+    setImageLoading(true);
+    try {
+      // First try to get from cached URI
+      let imageUri = await serviceFacade.getProductImageUri(product.id);
+      
+      // If no cached image and we have a link, try to fetch from the link
+      if (!imageUri && product.link) {
+        console.log(`No cached image for product ${product.id}, trying to fetch from link: ${product.link}`);
+        imageUri = await serviceFacade.getProductImageUri(product.id, product.link, product.type);
+      }
+      
+      // If still no image, try alternate methods
+      if (!imageUri) {
+        console.log(`Still no image for product ${product.id}, trying fallback approaches`);
+        
+        // Try extracting directly from the product URL
+        const imageUrl = await serviceFacade.extractProductImageUrl(product.link);
+        if (imageUrl) {
+          imageUri = await serviceFacade.getProductImageUri(product.id, '', product.type);
+        }
+      }
+      
+      // If we finally have an image, try to find similar products to share with
+      if (imageUri) {
+        // Find all products of the same type and update their images
+        const allProducts = await serviceFacade.getProductsWithFilters({ type: product.type });
+        if (allProducts && allProducts.length > 0) {
+          const similarProducts = allProducts.filter(p => 
+            p.id !== product.id && 
+            (p.name.includes(product.name.slice(0, 5)) || product.name.includes(p.name.slice(0, 5)))
+          );
+          
+          for (const similarProduct of similarProducts) {
+            await serviceFacade.shareProductImage(product.id, similarProduct.id);
+          }
+        }
+      }
+      
+      setProductImage(imageUri);
+    } catch (error) {
+      console.error('Error loading product image:', error);
+    } finally {
+      setImageLoading(false);
+    }
+  };
 
   const fetchCompetitorPrices = async () => {
     if (!product) return;
@@ -93,9 +147,19 @@ const ProductDetailsScreen = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.imageContainer}>
-        <View style={styles.placeholderImageBox}>
-          <Text style={styles.placeholderImageText}>{product.name}</Text>
-        </View>
+        {imageLoading ? (
+          <ActivityIndicator size="large" color="#0066cc" style={styles.imageLoader} />
+        ) : productImage ? (
+          <Image 
+            source={{ uri: productImage }} 
+            style={styles.productImage}
+            resizeMode="contain"
+          />
+        ) : (
+          <View style={styles.placeholderImageBox}>
+            <Text style={styles.placeholderImageText}>{product.name}</Text>
+          </View>
+        )}
       </View>
       
       <View style={styles.headerContainer}>
@@ -222,6 +286,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#e1e4e8',
+    height: 250,
+  },
+  productImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+  },
+  imageLoader: {
+    position: 'absolute',
   },
   placeholderImageBox: {
     width: 200,

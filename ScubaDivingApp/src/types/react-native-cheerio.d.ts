@@ -12,5 +12,7 @@ declare module 'react-native-cheerio' {
     attr(name: string): string | undefined;
     find(selector: string): CheerioElement;
     html(): string;
+    eq(index: number): CheerioElement;
+    each(func: (index: number, element: any) => void): CheerioElement;
   }
 } 

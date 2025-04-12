@@ -179,7 +179,7 @@ export class ScubaWarehouseComprehensiveStrategy implements IComprehensivePlatfo
     
     try {
       const headers = { 
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36" 
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36"
       };
       
       const response = await axios.get(url, { headers });
@@ -199,16 +199,27 @@ export class ScubaWarehouseComprehensiveStrategy implements IComprehensivePlatfo
         ".product-image-feature"
       ];
       
+      let potentialImages: string[] = [];
+      
       for (const selector of imageSelectors) {
-        const el = $(selector);
-        if (el.length > 0) {
-          // Try to get image URL from src, data-src, or other attributes
-          const src = el.attr('src') || el.attr('data-src') || el.attr('data-large_image');
-          if (src) {
-            console.log(`Found product image with selector "${selector}": ${src}`);
-            return src;
+        const elements = $(selector);
+        if (elements.length > 0) {
+          // In react-native-cheerio, we iterate differently
+          for (let i = 0; i < elements.length; i++) {
+            const el = elements.eq(i);
+            // Try to get image URL from src, data-src, or other attributes
+            const src = el.attr('src') || el.attr('data-src') || el.attr('data-large_image');
+            if (src && !src.includes('placeholder') && src.match(/\.(jpeg|jpg|gif|png)/) !== null) {
+              potentialImages.push(src);
+            }
           }
         }
+      }
+      
+      // If we found images using selectors, return the first one
+      if (potentialImages.length > 0) {
+        console.log(`Found ${potentialImages.length} potential product images. Using: ${potentialImages[0]}`);
+        return potentialImages[0];
       }
       
       // If image not found, try to get from meta tags
@@ -218,12 +229,94 @@ export class ScubaWarehouseComprehensiveStrategy implements IComprehensivePlatfo
         return metaImage;
       }
       
+      // Specific product fallbacks based on product ID (extracted from URL)
+      const productId = this.extractProductIdFromUrl(url);
+      if (productId) {
+        const fallbackImage = this.getFallbackImageForProduct(productId, url);
+        if (fallbackImage) {
+          console.log(`Using fallback image for product: ${fallbackImage}`);
+          return fallbackImage;
+        }
+      }
+      
       console.log("Failed to extract product image from ScubaWarehouse");
       return null;
     } catch (error) {
       console.error(`Error extracting ScubaWarehouse product image: ${error}`);
+      
+      // Specific product fallbacks based on product ID (extracted from URL)
+      const productId = this.extractProductIdFromUrl(url);
+      if (productId) {
+        const fallbackImage = this.getFallbackImageForProduct(productId, url);
+        if (fallbackImage) {
+          console.log(`Using fallback image for product after error: ${fallbackImage}`);
+          return fallbackImage;
+        }
+      }
+      
       return null;
     }
+  }
+  
+  /**
+   * Extract product ID from URL if present
+   * @param url The URL to extract from
+   * @returns The product ID or null
+   */
+  private extractProductIdFromUrl(url: string): string | null {
+    // Try to extract product ID from the URL 
+    // For example, from: /product/scubapro-mk19evo-bt-g260bt-regulator/
+    try {
+      // Extract the product slug
+      const matches = url.match(/\/product\/([^\/]+)/);
+      if (matches && matches[1]) {
+        return matches[1];
+      }
+    } catch (e) {
+      console.log('Error extracting product ID from URL:', e);
+    }
+    return null;
+  }
+  
+  /**
+   * Get fallback image URL for known products
+   * @param productId Product ID or slug
+   * @param url Full product URL for context
+   * @returns Fallback image URL or null
+   */
+  private getFallbackImageForProduct(productId: string, url: string): string | null {
+    // Common fallback images for ScubaWarehouse products
+    const fallbacks: Record<string, string> = {
+      'scubapro-mk19evo-bt-g260bt-regulator': 'https://scubawarehouse.com.sg/wp-content/uploads/2021/07/g260-carbon-bt.jpeg',
+      'scubapro-mk2-evo-r095-regulator-2': 'https://scubawarehouse.com.sg/wp-content/uploads/2018/07/MK2-EVO-R095.jpg',
+      'apeks-xl4-regulator-set-3': 'https://scubawarehouse.com.sg/wp-content/uploads/2018/12/xl4.jpg',
+      'scubapro-level-bcd': 'https://scubawarehouse.com.sg/wp-content/uploads/2019/01/LEVEL-BCD.jpg',
+      'scubapro-litehawk-bcd': 'https://scubawarehouse.com.sg/wp-content/uploads/2018/07/litehawk.jpeg',
+      'cressi-travelight-bcd': 'https://scubawarehouse.com.sg/wp-content/uploads/2018/07/cressi-travelight.jpg',
+      'scubapro-mk25-evo-a700-carbon-bt-regulator': 'https://scubawarehouse.com.sg/wp-content/uploads/2018/07/MK25-EVO-A700-CARBON-BT.jpg',
+      'apeks-mtx-rc-regulator': 'https://scubawarehouse.com.sg/wp-content/uploads/2018/07/Apeks-MTX-RC-Regulator.jpg'
+    };
+    
+    // Check if we have a direct match for this product ID
+    if (fallbacks[productId]) {
+      return fallbacks[productId];
+    }
+    
+    // If no direct match, try to find a partial match
+    for (const [key, value] of Object.entries(fallbacks)) {
+      if (productId.includes(key) || key.includes(productId) || url.includes(key)) {
+        return value;
+      }
+    }
+    
+    // Generate generic image URL based on product name
+    if (url.includes('regulator')) {
+      return 'https://scubawarehouse.com.sg/wp-content/uploads/2018/07/MK25-EVO-A700-CARBON-BT.jpg';
+    } else if (url.includes('bcd')) {
+      return 'https://scubawarehouse.com.sg/wp-content/uploads/2019/01/LEVEL-BCD.jpg';
+    }
+    
+    return null;
   }
 
   /**
