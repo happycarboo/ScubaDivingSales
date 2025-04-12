@@ -1,0 +1,7 @@
+node_modules
+**/node_modules
+**/product_images
+**/.DS_Store
+**/product_images.zip
+.DS_Store
+.vscode

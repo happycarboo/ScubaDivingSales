@@ -1,0 +1,2 @@
+const axios = require("axios"); const fs = require("fs"); async function run() { const urls = fs.readFileSync("fixed_urls.txt", "utf8").split("
+").filter(u => u.trim()); console.log(); for(const url of urls) { console.log(); try { const res = await axios.get(url); const match = res.data.match(//); if(match) console.log(); else console.log("No price found"); } catch(e) { console.log(); } } } run();
