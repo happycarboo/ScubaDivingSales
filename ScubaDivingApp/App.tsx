@@ -11,12 +11,20 @@ import ProductSelectionScreen from './src/screens/ProductSelection';
 import ProductDetailsScreen from './src/screens/ProductDetails';
 import ComparisonScreen from './src/screens/Comparison';
 import IntelligentSearchScreen from './src/screens/IntelligentSearch';
+import ProductImageExtractorTest from './src/components/test/ProductImageExtractorTest';
 
 // Placeholder Screens - to be replaced with actual implementations
 const RealTimeComparisonScreen = () => (
   <View style={styles.screen}>
     <Text style={styles.title}>Real-time Price Comparison</Text>
     <Text>Compare prices with competitors</Text>
+  </View>
+);
+
+// Testing screen for product image extraction
+const ImageExtractionTestScreen = () => (
+  <View style={styles.testContainer}>
+    <ProductImageExtractorTest />
   </View>
 );
 
@@ -114,6 +122,11 @@ export default function App() {
           component={RealTimeComparisonScreen} 
           options={{ title: 'Price Comparison' }}
         />
+        <Stack.Screen 
+          name="ImageExtractionTest" 
+          component={ImageExtractionTestScreen} 
+          options={{ title: 'Image Extraction Test' }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -126,6 +139,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
+  },
+  testContainer: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
   },
   title: {
     fontSize: 24,

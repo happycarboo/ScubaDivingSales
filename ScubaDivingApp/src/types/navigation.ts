@@ -6,6 +6,7 @@ export type RootStackParamList = {
   Comparison: undefined;
   IntelligentSearch: undefined;
   RealTimeComparison: undefined;
+  ImageExtractionTest: undefined;
 };
 
 export type ProductSelectionScreenNavigationProp = NativeStackNavigationProp<
@@ -31,4 +32,9 @@ export type IntelligentSearchScreenNavigationProp = NativeStackNavigationProp<
 export type RealTimeComparisonScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'RealTimeComparison'
+>;
+
+export type ImageExtractionTestScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'ImageExtractionTest'
 >; 

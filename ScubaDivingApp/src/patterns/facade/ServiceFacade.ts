@@ -12,6 +12,8 @@ import { CompetitorPrice, IPriceScraperService } from '../../services/scraper/in
 import { MultiPlatformPriceScraperService } from '../../services/scraper/MultiPlatformPriceScraperService';
 import { IProductUrlRepository } from '../../services/scraper/interfaces/IProductUrlRepository';
 import { DummyProductUrlRepository } from '../../services/scraper/repositories/DummyProductUrlRepository';
+import { ComprehensiveStrategyRegistry } from '../../services/scraper/registry/ComprehensiveStrategyRegistry';
+import { ProductInfo } from '../../services/scraper/interfaces/IProductInfoExtractor';
 
 /**
  * Legacy Firebase service for backward compatibility
@@ -84,6 +86,9 @@ export class ServiceFacade {
   // Product URL repository
   private productUrlRepository: IProductUrlRepository;
   
+  // Comprehensive strategy registry for product info extraction
+  private comprehensiveStrategyRegistry: ComprehensiveStrategyRegistry;
+  
   // Use Firebase flag - set to true by default to use real Firebase
   private useRealFirebase: boolean = true;
 
@@ -105,6 +110,9 @@ export class ServiceFacade {
     
     // Initialize product URL repository
     this.productUrlRepository = new DummyProductUrlRepository();
+    
+    // Initialize comprehensive strategy registry
+    this.comprehensiveStrategyRegistry = ComprehensiveStrategyRegistry.getInstance();
   }
   
   /**
@@ -416,6 +424,52 @@ export class ServiceFacade {
         console.error('Error fetching competitor prices with fallback service:', fallbackError);
         throw fallbackError;
       }
+    }
+  }
+
+  /**
+   * Extracts a product name from a URL
+   * @param url The URL to extract the product name from
+   * @returns Promise with the extracted product name or null if not found/supported
+   */
+  async extractProductName(url: string): Promise<string | null> {
+    try {
+      console.log(`Extracting product name from URL: ${url}`);
+      return await this.comprehensiveStrategyRegistry.extractProductNameFromUrl(url);
+    } catch (error) {
+      console.error('Error extracting product name:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Extracts a product image URL from a URL
+   * @param url The URL to extract the product image from
+   * @returns Promise with the extracted product image URL or null if not found/supported
+   */
+  async extractProductImageUrl(url: string): Promise<string | null> {
+    try {
+      console.log(`Extracting product image URL from URL: ${url}`);
+      return await this.comprehensiveStrategyRegistry.extractProductImageUrlFromUrl(url);
+    } catch (error) {
+      console.error('Error extracting product image URL:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Extracts comprehensive product information (name, image URL) and downloads the image
+   * @param url The URL to extract information from
+   * @param category The product category (for organization)
+   * @returns Promise with the extracted product information including local image path
+   */
+  async extractAndDownloadProductInfo(url: string, category: string = 'general'): Promise<ProductInfo | null> {
+    try {
+      console.log(`Extracting and downloading product info from URL: ${url}`);
+      return await this.comprehensiveStrategyRegistry.extractAndDownloadProductInfo(url, category);
+    } catch (error) {
+      console.error('Error extracting and downloading product info:', error);
+      return null;
     }
   }
 } 

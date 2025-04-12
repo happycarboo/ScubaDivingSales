@@ -31,7 +31,9 @@ ScubaDivingApp/
 │   │   ├── product/         # Product-specific components
 │   │   ├── comparison/      # Comparison view components
 │   │   ├── search/          # Search-related components
-│   │   └── recommendation/  # Recommendation components
+│   │   ├── recommendation/  # Recommendation components
+│   │   └── test/            # Test components for development/debugging
+│   │       └── ProductImageExtractorTest.tsx # Test component for image extraction
 │   ├── screens/             # Screen components
 │   │   ├── ProductSelection/
 │   │   ├── ProductDetails/
@@ -45,20 +47,25 @@ ScubaDivingApp/
 │   │   │   ├── interfaces/  # Service and repository interfaces
 │   │   │   ├── repositories/# Database repository implementations
 │   │   │   └── FirebaseService.ts # Core Firebase service
-│   │   └── scraper/         # Price scraping functionality
+│   │   └── scraper/         # Web scraping functionality
 │   │       ├── interfaces/  # Service and strategy interfaces
+│   │       │   └── IProductInfoExtractor.ts # Interface for product info extraction
 │   │       ├── strategies/  # Platform-specific extraction strategies
+│   │       │   └── ScubaWarehouseComprehensiveStrategy.ts # Strategy for ScubaWarehouse
 │   │       ├── repositories/# Product URL repositories
 │   │       ├── registry/    # Strategy registry
+│   │       │   └── ComprehensiveStrategyRegistry.ts # Registry for comprehensive strategies
 │   │       ├── PriceScraperService.ts     # Original scraper (legacy)
 │   │       └── MultiPlatformPriceScraperService.ts # New multi-platform implementation
 │   ├── patterns/            # Design pattern implementations
 │   │   ├── factory/         # Factory Method pattern
 │   │   ├── visitor/         # Visitor pattern
 │   │   └── facade/          # Facade pattern
+│   │       └── ServiceFacade.ts # Facade for service orchestration (updated with image extraction)
 │   ├── utils/               # Utility functions
 │   ├── config/              # Configuration files
 │   ├── types/               # TypeScript type definitions
+│   │   └── navigation.ts    # Navigation type definitions
 │   └── __tests__/           # Test files
 ├── App.tsx                  # Main app component
 ├── package.json
@@ -439,6 +446,76 @@ export class ConfigurableServiceFacade {
   }
 }
 ```
+
+## New Feature: Product Image and Name Extraction
+
+The app now includes functionality to extract product images and names from ScubaWarehouse product pages. This feature enhances the product information available to sales representatives.
+
+### Architecture
+
+The image and name extraction functionality follows the same SOLID principles and Strategy pattern as the price extraction:
+
+1. **IProductInfoExtractor Interface**: Defines the contract for extracting product names and images
+2. **IComprehensivePlatformStrategy Interface**: Extends both price extraction and product info extraction capabilities
+3. **ScubaWarehouseComprehensiveStrategy**: Implements the comprehensive strategy for ScubaWarehouse
+4. **ComprehensiveStrategyRegistry**: Manages and provides access to all comprehensive strategies
+5. **ServiceFacade Extension**: Provides simplified access to the new functionality
+
+### Key Features
+
+1. **Product Name Extraction**: Extracts the product name from ScubaWarehouse product pages
+2. **Product Image URL Extraction**: Extracts the product image URL from ScubaWarehouse product pages
+3. **Image Download**: Downloads product images to local storage for offline access
+4. **Category Organization**: Organizes downloaded images by product category
+5. **JSON Output**: Provides structured JSON output with product information and file paths
+
+### Usage
+
+```typescript
+// Get the ServiceFacade instance
+const serviceFacade = ServiceFacade.getInstance();
+
+// Extract a product name
+const productName = await serviceFacade.extractProductName('https://scubawarehouse.com.sg/product/scubapro-level-bcd/');
+
+// Extract a product image URL
+const imageUrl = await serviceFacade.extractProductImageUrl('https://scubawarehouse.com.sg/product/scubapro-level-bcd/');
+
+// Extract and download all product info
+const productInfo = await serviceFacade.extractAndDownloadProductInfo(
+  'https://scubawarehouse.com.sg/product/scubapro-level-bcd/',
+  'BCD'
+);
+
+// Access the downloaded information
+console.log(`Product Name: ${productInfo.name}`);
+console.log(`Image URL: ${productInfo.imageUrl}`);
+console.log(`Local Image Path: ${productInfo.localImagePath}`);
+```
+
+### Testing the Feature
+
+1. Navigate to the Product Selection screen
+2. Click on the "Test Image Extraction" button
+3. Enter a ScubaWarehouse product URL
+4. Click on "Extract & Download All" to test the full functionality
+
+### Implementation Details
+
+The implementation follows the Strategy pattern and uses both HTTP/Cheerio for initial extraction and Puppeteer as a fallback:
+
+1. **HTTP/Cheerio Method**: Fast extraction using axios and cheerio
+2. **Puppeteer Fallback**: Reliable extraction using browser automation if needed
+3. **File System Integration**: Uses expo-file-system for image download and storage
+4. **Category Organization**: Creates category directories for better organization
+
+### Extending for Other Platforms
+
+To add support for other platforms:
+
+1. Create a new strategy implementing `IComprehensivePlatformStrategy`
+2. Register the strategy with `ComprehensiveStrategyRegistry`
+3. Update the UI to handle platform-specific details if needed
 
 ## Future Enhancements for Price Scraping
 

@@ -129,6 +129,11 @@ const ProductSelectionScreen = () => {
     navigation.navigate('IntelligentSearch');
   };
 
+  // Navigate to image extraction test
+  const handleImageExtractionTestPress = () => {
+    navigation.navigate('ImageExtractionTest');
+  };
+
   // Add functions to handle checkbox selection and link opening
   const handleSelectProduct = (productId: string) => {
     // Logic to handle product selection
@@ -243,6 +248,15 @@ const ProductSelectionScreen = () => {
           <Text style={styles.actionButtonText}>Intelligent Search</Text>
         </TouchableOpacity>
       </View>
+
+      <View style={styles.debugActionsContainer}>
+        <TouchableOpacity 
+          style={styles.debugActionButton}
+          onPress={handleImageExtractionTestPress}
+        >
+          <Text style={styles.debugActionButtonText}>Test Image Extraction</Text>
+        </TouchableOpacity>
+      </View>
       
       {loading ? (
         <ActivityIndicator size="large" color="#0066cc" style={styles.loader} />
@@ -323,6 +337,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionButtonText: {
+    color: '#fff',
+    fontWeight: '500',
+  },
+  debugActionsContainer: {
+    marginBottom: 16,
+  },
+  debugActionButton: {
+    backgroundColor: '#ff9800',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  debugActionButtonText: {
     color: '#fff',
     fontWeight: '500',
   },
