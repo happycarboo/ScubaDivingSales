@@ -552,20 +552,214 @@ For all code changes, ensure:
 
 ## Testing Strategy
 
-### Unit Testing
+This application follows a comprehensive testing strategy that leverages different testing techniques to ensure code quality and functionality. 
+
+### Core Testing Approaches
+
+#### Unit Testing
 - Test each pattern implementation in isolation
 - Verify SOLID principles adherence through tests
 - Validate business logic operations
 
-### Integration Testing
+#### Integration Testing
 - Test interactions between different subsystems
 - Verify proper facade operation with mocked services
 - Test navigation flows and screen transitions
 
-### UI Testing
+#### UI Testing
 - Verify component rendering
 - Test user interactions and form submissions
 - Validate responsive design for different iPad models
+
+### Testing Methodologies
+
+The testing approach further implements the following methodologies:
+
+#### 1. Equivalence Partitioning (EP)
+
+Equivalence Partitioning divides input data into classes where test cases in each partition are expected to have the same behavior.
+
+**Application in ScubaDivingSales:**
+- **Product Budget Categories**: Testing low (0-200), medium (201-500), and high (501+) price ranges
+- **Diver Experience Levels**: Testing beginner, intermediate, and advanced user experiences
+- **Product Types**: Testing different product categories (regulators, BCDs, fins)
+
+```typescript
+// Example: Product Budget Filter Test using EP
+test.each([
+  ['low budget', {minPrice: 0, maxPrice: 200}, expectedLowBudgetProducts],
+  ['medium budget', {minPrice: 201, maxPrice: 500}, expectedMediumBudgetProducts],
+  ['high budget', {minPrice: 501, maxPrice: 2000}, expectedHighBudgetProducts]
+])('should filter products correctly for %s', (label, priceRange, expectedProducts) => {
+  const results = filterService.filterByPrice(allProducts, priceRange);
+  expect(results).toEqual(expectedProducts);
+});
+```
+
+#### 2. Boundary Value Analysis (BVA)
+
+BVA tests values at the boundaries between equivalence partitions, where errors are most likely to occur.
+
+**Application in ScubaDivingSales:**
+- **Price Category Boundaries**: Testing prices at exactly 200, 201, 500, 501
+- **Stock Level Boundaries**: Testing "low stock" thresholds (e.g., 5 items remaining)
+- **Experience Level Requirements**: Testing minimum requirements for different diving equipment
+
+```typescript
+// Example: Price Categorization Test using BVA
+test.each([
+  [0, 'low'],       // Lower bound
+  [200, 'low'],     // Upper bound of 'low'
+  [201, 'medium'],  // Lower bound of 'medium'
+  [500, 'medium'],  // Upper bound of 'medium'
+  [501, 'high'],    // Lower bound of 'high'
+])('price $%s should be categorized as %s', (price, expectedCategory) => {
+  expect(priceCategorizationService.categorize(price)).toBe(expectedCategory);
+});
+```
+
+#### 3. Pairwise Testing (Combinatorial Testing)
+
+Pairwise testing reduces the number of test cases while maintaining good coverage by testing all possible pairs of input values.
+
+**Application in ScubaDivingSales:**
+- **Product Recommendation System**: Testing different combinations of:
+  - Experience levels (beginner/intermediate/advanced)
+  - Diving types (recreational/technical/cave)
+  - Budget levels (low/medium/high)
+
+```typescript
+// Example: Recommendation Engine Test using Pairwise Testing
+// Full combinatorial would require 27 tests (3×3×3)
+// Pairwise reduces to 9 tests while covering all value pairs
+const testCases = [
+  {experience: 'beginner', divingType: 'recreational', budget: 'low'},
+  {experience: 'beginner', divingType: 'technical', budget: 'medium'},
+  {experience: 'beginner', divingType: 'cave', budget: 'high'},
+  {experience: 'intermediate', divingType: 'recreational', budget: 'medium'},
+  {experience: 'intermediate', divingType: 'technical', budget: 'high'},
+  {experience: 'intermediate', divingType: 'cave', budget: 'low'},
+  {experience: 'advanced', divingType: 'recreational', budget: 'high'},
+  {experience: 'advanced', divingType: 'technical', budget: 'low'},
+  {experience: 'advanced', divingType: 'cave', budget: 'medium'}
+];
+
+test.each(testCases)('should recommend appropriate products for %p', (params) => {
+  const recommendations = recommendationService.getRecommendations(params);
+  expect(recommendations.length).toBeGreaterThan(0);
+  // Additional assertions for recommendation quality
+});
+```
+
+### 4. Design Pattern Testing
+
+Testing specific implementations of design patterns to ensure they function as expected.
+
+#### Factory Pattern Testing
+```typescript
+test('creates a regulator product', () => {
+  const product = factory.createProduct(
+    'regulator',
+    '1',
+    'Test Regulator',
+    'TestBrand',
+    500,
+    { qualityScore: 8 }
+  );
+  expect(product).toBeInstanceOf(RegulatorProduct);
+  expect(product.getDescription()).toContain('Test Regulator');
+});
+```
+
+#### Strategy Pattern Testing
+```typescript
+test('should select correct price extraction strategy for URL', () => {
+  const registry = PlatformStrategyRegistry.getInstance();
+  const lazadaUrl = 'https://www.lazada.sg/products/abc';
+  const shopeeUrl = 'https://shopee.sg/product/xyz';
+  
+  const lazadaStrategy = registry.getStrategyForUrl(lazadaUrl);
+  const shopeeStrategy = registry.getStrategyForUrl(shopeeUrl);
+  
+  expect(lazadaStrategy.getPlatformName()).toBe('Lazada');
+  expect(shopeeStrategy.getPlatformName()).toBe('Shopee');
+});
+```
+
+#### Visitor Pattern Testing
+```typescript
+test('visitor calculates correct price for experience level', () => {
+  const visitor = new PriceCalculatorVisitor('intermediate');
+  const product = new RegulatorProduct('1', 'Test', 'Brand', 100, {});
+  
+  const calculatedPrice = product.accept(visitor);
+  expect(calculatedPrice).toBe(100); // No adjustment for intermediate
+});
+```
+
+#### Facade Pattern Testing
+```typescript
+test('service facade retrieves product with prices', async () => {
+  const facade = ServiceFacade.getInstance();
+  const result = await facade.getProductWithPriceComparison('1');
+  
+  expect(result.product).toBeDefined();
+  expect(result.competitorPrices).toBeDefined();
+});
+```
+
+### Testing Implementation Plan
+
+1. **Unit Tests**: Testing individual components and patterns in isolation
+   - Factory method implementations
+   - Strategy pattern implementations
+   - Visitor pattern implementations
+   - Service implementations
+
+2. **Integration Tests**: Testing interactions between components
+   - Product filtering + recommendation flow
+   - Price scraping + comparison flow
+   - Firebase data integration
+
+3. **UI Component Tests**: Testing React Native components
+   - Rendering with different props
+   - User interaction simulations
+   - State changes
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage report
+npm test -- --coverage
+
+# Run specific test file
+npm test -- ProductFactory.test.ts
+```
+
+### Setting Up Test Environment
+
+The testing environment uses Jest with React Native Testing Library. To set up:
+
+1. Install testing dependencies:
+   ```
+   npm install --save-dev jest @testing-library/react-native @testing-library/jest-native
+   ```
+
+2. Configure Jest in package.json:
+   ```json
+   "jest": {
+     "preset": "react-native",
+     "setupFilesAfterEnv": ["@testing-library/jest-native/extend-expect"],
+     "transformIgnorePatterns": [
+       "node_modules/(?!(react-native|@react-native|react-native-.*)/)"
+     ]
+   }
+   ```
+
+3. Create mock implementations for Firebase and other external services
 
 ## Project Completion Requirements
 
