@@ -2,6 +2,27 @@
 
 A specialized sales assistant app for ScubaWarehouse, designed to help sales representatives provide better service by streamlining product selection, comparison, and recommendation.
 
+## Table of Contents
+- [Architecture](#architecture)
+- [Firebase Integration](#firebase-integration)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Required Dependencies](#required-dependencies)
+  - [Running the App](#running-the-app)
+  - [Testing](#testing)
+- [Development Guide: SOLID Principles & Design Patterns](#development-guide-solid-principles--design-patterns)
+- [Price Scraping Implementation](#price-scraping-implementation)
+- [New Feature: Product Thumbnails](#new-feature-product-thumbnails)
+- [Future Enhancements for Price Scraping](#future-enhancements-for-price-scraping)
+- [Code Quality Checklist](#code-quality-checklist)
+- [Implementation Roadmap](#implementation-roadmap)
+- [Testing Strategy](#testing-strategy)
+- [Firebase Configuration](#firebase-configuration)
+  - [Firestore Data Structure](#firestore-data-structure)
+- [Troubleshooting Common Issues](#troubleshooting-common-issues)
+
 ## Architecture
 
 This application is built using React Native for iPad and follows SOLID principles with the implementation of the following design patterns:
