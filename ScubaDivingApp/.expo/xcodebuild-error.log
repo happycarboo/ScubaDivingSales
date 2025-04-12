@@ -1,0 +1,10 @@
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:iOS Simulator, arch:arm64, id:B78CF3F2-B244-46F1-8509-D8E6C04283AC, OS:17.4, name:iPad Pro (12.9-inch) (6th generation) }
+{ platform:iOS Simulator, arch:x86_64, id:B78CF3F2-B244-46F1-8509-D8E6C04283AC, OS:17.4, name:iPad Pro (12.9-inch) (6th generation) }
+** BUILD FAILED **
+
+
+The following build commands failed:
+	CompileC /Users/longsheng/Library/Developer/Xcode/DerivedData/ScubaDivingApp-dgvswomgrcwfqhckprwrmoulymty/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/React-rendererdebug.build/Objects-normal/arm64/DebugStringConvertible.o /Users/longsheng/Downloads/ScubaDivingSales/ScubaDivingApp/node_modules/react-native/ReactCommon/react/renderer/debug/DebugStringConvertible.cpp normal arm64 c++ com.apple.compilers.llvm.clang.1_0.compiler (in target 'React-rendererdebug' from project 'Pods')
+	Building workspace ScubaDivingApp with scheme ScubaDivingApp and configuration Debug
+(2 failures)
