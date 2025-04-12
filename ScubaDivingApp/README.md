@@ -9,6 +9,7 @@ This application is built using React Native for iPad and follows SOLID principl
 - **Factory Method Pattern**: For creating product objects based on their type
 - **Visitor Pattern**: For implementing operations on products without modifying their classes
 - **Facade Pattern**: For simplifying complex subsystem interactions
+- **Strategy Pattern**: For implementing different price extraction algorithms for various e-commerce platforms
 
 ### Firebase Integration
 
@@ -44,7 +45,13 @@ ScubaDivingApp/
 │   │   │   ├── interfaces/  # Service and repository interfaces
 │   │   │   ├── repositories/# Database repository implementations
 │   │   │   └── FirebaseService.ts # Core Firebase service
-│   │   └── scraper/
+│   │   └── scraper/         # Price scraping functionality
+│   │       ├── interfaces/  # Service and strategy interfaces
+│   │       ├── strategies/  # Platform-specific extraction strategies
+│   │       ├── repositories/# Product URL repositories
+│   │       ├── registry/    # Strategy registry
+│   │       ├── PriceScraperService.ts     # Original scraper (legacy)
+│   │       └── MultiPlatformPriceScraperService.ts # New multi-platform implementation
 │   ├── patterns/            # Design pattern implementations
 │   │   ├── factory/         # Factory Method pattern
 │   │   ├── visitor/         # Visitor pattern
@@ -284,6 +291,94 @@ const priceService = new PriceScraperService();
 const prices = await priceService.fetchCompetitorPrices(productId);
 ```
 
+#### 4. Strategy Pattern
+
+**Locations:** `src/services/scraper/strategies/`
+
+**Core Requirement:** Define a family of algorithms, encapsulate each one, and make them interchangeable.
+
+**Implementation Rules:**
+- Create platform-specific strategies that implement a common interface
+- Use a registry to manage and access available strategies
+- Select strategies based on URL or other criteria
+- Each strategy encapsulates its own extraction algorithm
+
+**Usage Example:**
+```typescript
+// CORRECT: Using the strategy pattern through registry
+const registry = PlatformStrategyRegistry.getInstance();
+const price = await registry.extractPriceFromUrl(url);
+
+// INCORRECT: Direct strategy usage with conditionals
+let price;
+if (url.includes('lazada')) {
+  price = extractLazadaPrice(url);
+} else if (url.includes('shopee')) {
+  price = extractShopeePrice(url);
+}
+```
+
+### Price Scraping Implementation
+
+The price scraping functionality has been implemented using SOLID principles and the Strategy pattern. This allows for:
+
+1. **Extensibility**: Adding new e-commerce platforms without modifying existing code
+2. **Maintainability**: Each platform's extraction logic is isolated in its own class
+3. **Testability**: Platform strategies can be tested independently
+4. **Flexibility**: Different extraction methods can be used for different platforms
+
+#### Key Components
+
+1. **IPlatformExtractionStrategy Interface**: Defines the contract for all extraction strategies
+2. **Platform-Specific Strategies**: Implement platform-specific price extraction logic
+3. **PlatformStrategyRegistry**: Manages and provides access to all strategies
+4. **IProductUrlRepository Interface**: Defines the contract for storing and retrieving product URLs
+5. **MultiPlatformPriceScraperService**: Implements the price scraping service using the strategies
+
+#### Usage
+
+```typescript
+// Get the ServiceFacade instance
+const serviceFacade = ServiceFacade.getInstance();
+
+// Fetch competitor prices for a product
+const prices = await serviceFacade.fetchCompetitorPrices(
+  productId,
+  productModel,
+  productBrand
+);
+```
+
+#### Extending with New Platforms
+
+To add a new e-commerce platform:
+
+1. Create a new strategy implementing `IPlatformExtractionStrategy`
+2. Register the strategy with `PlatformStrategyRegistry`
+3. Add relevant URLs to `IProductUrlRepository` implementation
+
+```typescript
+// Example: Adding a new platform strategy
+export class NewPlatformStrategy implements IPlatformExtractionStrategy {
+  getPlatformName(): string {
+    return 'NewPlatform';
+  }
+  
+  canHandleUrl(url: string): boolean {
+    return url.includes('newplatform.com');
+  }
+  
+  async extractPrice(url: string): Promise<string | null> {
+    // Implement platform-specific extraction logic
+    return '$123.45';
+  }
+}
+
+// Register the new strategy
+const registry = PlatformStrategyRegistry.getInstance();
+registry.registerStrategy(new NewPlatformStrategy());
+```
+
 ### Advanced Pattern Implementation (Required for Later Phases)
 
 #### 1. Registry Pattern for Factory Extensions
@@ -345,6 +440,67 @@ export class ConfigurableServiceFacade {
 }
 ```
 
+## Future Enhancements for Price Scraping
+
+### Firebase Integration for URL Storage
+
+The current implementation uses a dummy repository for storing product URLs. In the future, this will be replaced with a Firebase-based implementation:
+
+```typescript
+export class FirebaseProductUrlRepository implements IProductUrlRepository {
+  private firestore: FirebaseFirestore;
+  
+  constructor() {
+    this.firestore = firebase.firestore();
+  }
+  
+  async getCompetitorUrls(productId: string, productBrand: string, productModel: string): Promise<Record<string, string>> {
+    const doc = await this.firestore.collection('productUrls').doc(productId).get();
+    return doc.exists ? doc.data().urls : {};
+  }
+  
+  // Implement other methods
+}
+```
+
+### Web Worker Implementation for Background Processing
+
+To improve UI responsiveness, price scraping could be moved to a background process using web workers:
+
+```typescript
+// In the main thread
+const worker = new Worker('./priceScraperWorker.js');
+worker.onmessage = (event) => {
+  const prices = event.data;
+  setCompetitorPrices(prices);
+};
+worker.postMessage({ productId, productBrand, productModel });
+```
+
+### Caching and Offline Support
+
+Enhance the price scraping service with better caching and offline support:
+
+```typescript
+async fetchCompetitorPrices(productId: string, productModel: string, productBrand: string): Promise<Record<string, CompetitorPrice>> {
+  // Check for cached data
+  const cachedData = await this.getCachedPrices(productId);
+  if (cachedData && this.isCacheValid(cachedData)) {
+    return cachedData;
+  }
+  
+  // Check for network connectivity
+  if (!this.isOnline()) {
+    return cachedData || {};
+  }
+  
+  // Fetch and cache new data
+  const prices = await this.fetchPrices(productId, productModel, productBrand);
+  await this.cachePrices(productId, prices);
+  return prices;
+}
+```
+
 ## Code Quality Checklist
 
 For all code changes, ensure:
@@ -360,6 +516,7 @@ For all code changes, ensure:
    - [ ] Factory Pattern for object creation
    - [ ] Visitor Pattern for operations on products
    - [ ] Facade Pattern for service access
+   - [ ] Strategy Pattern for price extraction algorithms
 
 3. **Code Quality**
    - [ ] Consistent naming conventions
@@ -369,24 +526,25 @@ For all code changes, ensure:
 
 ## Implementation Roadmap
 
-### Phase 1: Core Functionality Enhancement
+### Phase 1: Core Functionality Enhancement ✅
 - Complete Firebase integration for real product data
 - Implement proper error handling and loading states
 - Enhance product detail page with complete specifications
 - Add proper navigation between screens
 
-### Phase 2: Pattern Implementation Completion
+### Phase 2: Pattern Implementation Completion ✅
 - Enhance Factory Pattern with product registration system
 - Complete Visitor Pattern integration with user experience levels
 - Expand Facade Pattern with proper error handling and caching
+- Implement Strategy Pattern for price extraction algorithms
 
-### Phase 3: Advanced Features
-- Implement real-time price comparison using web scraping
+### Phase 3: Advanced Features 🔶
+- Implement real-time price comparison using web scraping ✅
 - Add intelligent search functionality with natural language processing
 - Develop recommendation engine based on user preferences and experience
 - Build comprehensive product comparison feature
 
-### Phase 4: Optimization and Refinement
+### Phase 4: Optimization and Refinement ⏳
 - Optimize performance for large product catalogs
 - Implement proper state management solution
 - Add automated testing for all components
@@ -447,5 +605,12 @@ The application expects a Firestore database with the following structure:
     - `price`: number
     - `type`: string (one of: "regulator", "bcd", "fin")
     - `specifications`: object with product details
+
+- Collection: `productUrls` (for price scraping functionality)
+  - Document ID: Product ID
+  - Fields:
+    - `urls`: object with platform URLs
+      - Key: Competitor name (e.g., "Lazada", "Shopee")
+      - Value: URL to the competitor's product page
 
 [... rest of the existing content ...] 

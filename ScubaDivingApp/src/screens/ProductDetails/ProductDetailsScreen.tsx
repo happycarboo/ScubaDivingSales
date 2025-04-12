@@ -1,178 +1,78 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
-  ActivityIndicator,
-  Alert 
-} from 'react-native';
-import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
-import { ServiceFacade } from '../../patterns/facade/ServiceFacade';
-import { ProductFactory } from '../../patterns/factory/ProductFactory';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { RootStackParamList, ProductDetailsScreenNavigationProp } from '../../types/navigation';
-import CompetitorPricesComponent from '../../components/product/CompetitorPricesComponent';
-import { RegulatorDetails, BCDDetails } from '../../services/firebase/repositories/ProductRepository';
+import { ServiceFacade } from '../../patterns/facade/ServiceFacade';
+import { CompetitorPrice } from '../../services/scraper/interfaces/IPriceScraperService';
 
-type ProductDetailsRouteProp = RouteProp<RootStackParamList, 'ProductDetails'>;
-
-interface TechDetails {
-  regulator?: RegulatorDetails;
-  bcd?: BCDDetails;
-}
+// We'll use any because RouteProp has compatibility issues
+type ProductDetailsScreenRouteProp = any;
 
 const ProductDetailsScreen = () => {
-  const route = useRoute<ProductDetailsRouteProp>();
+  const route = useRoute<ProductDetailsScreenRouteProp>();
   const navigation = useNavigation<ProductDetailsScreenNavigationProp>();
   const { productId } = route.params;
   
-  const [product, setProduct] = useState<any>(null);
-  const [techDetails, setTechDetails] = useState<TechDetails>({});
-  const [competitorPrices, setCompetitorPrices] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
-  const [debugInfo, setDebugInfo] = useState<string>('');
+  const [product, setProduct] = useState<any>(null);
+  const [techDetails, setTechDetails] = useState<any>(null);
+  const [competitorPrices, setCompetitorPrices] = useState<Record<string, CompetitorPrice> | null>(null);
+  const [pricesLoading, setPricesLoading] = useState(false);
   
-  // Service facade for simplifying API interactions
   const serviceFacade = ServiceFacade.getInstance();
-  // Product factory for creating the right product type
-  const productFactory = new ProductFactory();
-  
+
   useEffect(() => {
     const fetchProductDetails = async () => {
       try {
-        setLoading(true);
-        let debugText = `Starting fetch for product ID: ${productId}\n`;
-        
-        // Log if we're using real Firebase
-        debugText += `Using real Firebase: ${serviceFacade.isUsingRealFirebase()}\n`;
-        
-        // Fetch basic product data with price comparison
-        const result = await serviceFacade.getProductWithPriceComparison(productId);
+        // Get product with technical details
+        const result = await serviceFacade.getProductWithTechDetails(productId);
         setProduct(result.product);
-        setCompetitorPrices(result.competitorPrices);
+        setTechDetails(result.techDetails);
         
-        debugText += `Product basic data fetched: ${result.product.name}\n`;
-        debugText += `Product type: ${result.product.type}\n`;
-        
-        // Fetch technical details based on product type
-        if (result.product.type === 'regulator') {
-          try {
-            debugText += `Attempting to fetch regulator details...\n`;
-            const regulatorDetails = await serviceFacade.getRegulatorDetails(productId);
-            debugText += regulatorDetails 
-              ? `Regulator details received: ${JSON.stringify(regulatorDetails)}\n` 
-              : `No regulator details found\n`;
-              
-            if (regulatorDetails) {
-              setTechDetails({ regulator: regulatorDetails });
-            } else {
-              debugText += `Using mock regulator details instead\n`;
-              setTechDetails({
-                regulator: {
-                  prod_id: productId,
-                  category: 'regulator',
-                  temperature: 'Cold water',
-                  high_pressure_port: result.product.id === '1' ? 2 : result.product.id === '2' ? 1 : 2,
-                  low_pressure_port: result.product.id === '1' ? 5 : result.product.id === '2' ? 4 : 3,
-                  adjustable_airflow: result.product.id === '1' ? 'YES' : 'NO',
-                  pre_dive_mode: result.product.id === '1' || result.product.id === '3' ? 'YES' : 'NO',
-                  weights_base_on_yoke: result.product.id === '1' ? 1310 : result.product.id === '2' ? 871 : 1041,
-                  material: result.product.id === '1' ? 'Carbon fibre front' : result.product.id === '2' ? 'Chrome Plated' : 'Satin',
-                  dive_type: result.product.id === '1' ? 'Recreational / Tech / Contaminated' : 'Recreational',
-                  airflow_at_200bar: result.product.id === '1' ? '1800 l/min' : result.product.id === '2' ? '1400 l/min' : '1500 l/min'
-                }
-              });
-            }
-          } catch (error) {
-            console.error('Error fetching regulator details:', error);
-            debugText += `Error fetching regulator details: ${error}\n`;
-            // Use mock data if there's an error with Firebase
-            setTechDetails({
-              regulator: {
-                prod_id: productId,
-                category: 'regulator',
-                temperature: 'Cold water',
-                high_pressure_port: result.product.id === '1' ? 2 : result.product.id === '2' ? 1 : 2,
-                low_pressure_port: result.product.id === '1' ? 5 : result.product.id === '2' ? 4 : 3,
-                adjustable_airflow: result.product.id === '1' ? 'YES' : 'NO',
-                pre_dive_mode: result.product.id === '1' || result.product.id === '3' ? 'YES' : 'NO',
-                weights_base_on_yoke: result.product.id === '1' ? 1310 : result.product.id === '2' ? 871 : 1041,
-                material: result.product.id === '1' ? 'Carbon fibre front' : result.product.id === '2' ? 'Chrome Plated' : 'Satin',
-                dive_type: result.product.id === '1' ? 'Recreational / Tech / Contaminated' : 'Recreational',
-                airflow_at_200bar: result.product.id === '1' ? '1800 l/min' : result.product.id === '2' ? '1400 l/min' : '1500 l/min'
-              }
-            });
-          }
-        } else if (result.product.type === 'bcd') {
-          try {
-            debugText += `Attempting to fetch BCD details...\n`;
-            const bcdDetails = await serviceFacade.getBCDDetails(productId);
-            debugText += bcdDetails 
-              ? `BCD details received: ${JSON.stringify(bcdDetails)}\n` 
-              : `No BCD details found\n`;
-              
-            if (bcdDetails) {
-              setTechDetails({ bcd: bcdDetails });
-            } else {
-              debugText += `Using mock BCD details instead\n`;
-              setTechDetails({
-                bcd: {
-                  prod_id: productId,
-                  category: 'BCD',
-                  type: result.product.id === '5' ? 'Backplate' : 'Jacket',
-                  weight_pocket: 'Yes',
-                  quick_release: result.product.id === '5' ? 'No' : 'Yes',
-                  no_pockets: 2,
-                  back_trim_pocket: 'Yes',
-                  weight_kg: result.product.id === '4' ? 2.7 : result.product.id === '5' ? 2.3 : 2.8,
-                  has_size: 'Yes',
-                  lift_capacity_base_on_largest_size_kg: result.product.id === '4' ? 17.3 : result.product.id === '5' ? 13.2 : 16.3
-                }
-              });
-            }
-          } catch (error) {
-            console.error('Error fetching BCD details:', error);
-            debugText += `Error fetching BCD details: ${error}\n`;
-            // Use mock data if there's an error with Firebase
-            setTechDetails({
-              bcd: {
-                prod_id: productId,
-                category: 'BCD',
-                type: result.product.id === '5' ? 'Backplate' : 'Jacket',
-                weight_pocket: 'Yes',
-                quick_release: result.product.id === '5' ? 'No' : 'Yes',
-                no_pockets: 2,
-                back_trim_pocket: 'Yes',
-                weight_kg: result.product.id === '4' ? 2.7 : result.product.id === '5' ? 2.3 : 2.8,
-                has_size: 'Yes',
-                lift_capacity_base_on_largest_size_kg: result.product.id === '4' ? 17.3 : result.product.id === '5' ? 13.2 : 16.3
-              }
-            });
-          }
-        }
-        
-        setDebugInfo(debugText);
+        // Get last fetched competitor prices (if any)
+        const prices = await serviceFacade.getLastFetchedCompetitorPrices(productId);
+        setCompetitorPrices(prices);
       } catch (error) {
-        Alert.alert('Error', 'Failed to fetch product details');
-        console.error(error);
-        setDebugInfo(`Error in fetchProductDetails: ${error}`);
+        console.error('Error loading product details:', error);
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchProductDetails();
   }, [productId]);
-  
-  const handleComparePress = () => {
-    navigation.navigate('Comparison');
+
+  const fetchCompetitorPrices = async () => {
+    if (!product) return;
+    
+    setPricesLoading(true);
+    try {
+      // Use our new method that leverages the multi-platform price scraper
+      const prices = await serviceFacade.fetchCompetitorPrices(
+        productId,
+        product.name,
+        product.brand
+      );
+      setCompetitorPrices(prices);
+    } catch (error) {
+      console.error('Error fetching competitor prices:', error);
+    } finally {
+      setPricesLoading(false);
+    }
   };
 
-  const toggleDebugInfo = () => {
-    Alert.alert('Debug Info', debugInfo);
+  const formatDetails = (details: any) => {
+    // Convert technical details object into an array of label/value pairs
+    if (!details) return [];
+    
+    return Object.entries(details)
+      .filter(([key]) => key !== 'prod_id' && key !== 'category') // Filter out non-display fields
+      .map(([key, value]) => ({
+        label: key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+        value: String(value) // Convert value to string to ensure it can be displayed
+      }));
   };
-  
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -181,144 +81,110 @@ const ProductDetailsScreen = () => {
       </View>
     );
   }
-  
+
   if (!product) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Product not found</Text>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.backButtonText}>Go Back</Text>
-        </TouchableOpacity>
+        <Text style={styles.errorText}>Product not found or error loading product.</Text>
       </View>
     );
   }
-  
-  // Render technical specifications based on product type
-  const renderTechnicalSpecs = () => {
-    if (product.type === 'regulator' && techDetails.regulator) {
-      const regulator = techDetails.regulator;
-      return (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Technical Specifications</Text>
-          <View style={styles.techSpecsTable}>
-            <View style={styles.techSpecRow}>
-              <Text style={styles.techSpecLabel}>Temperature Rating</Text>
-              <Text style={styles.techSpecValue}>{regulator.temperature}</Text>
-            </View>
-            <View style={styles.techSpecRow}>
-              <Text style={styles.techSpecLabel}>High Pressure Ports</Text>
-              <Text style={styles.techSpecValue}>{regulator.high_pressure_port}</Text>
-            </View>
-            <View style={styles.techSpecRow}>
-              <Text style={styles.techSpecLabel}>Low Pressure Ports</Text>
-              <Text style={styles.techSpecValue}>{regulator.low_pressure_port}</Text>
-            </View>
-            <View style={styles.techSpecRow}>
-              <Text style={styles.techSpecLabel}>Adjustable Airflow</Text>
-              <Text style={styles.techSpecValue}>{regulator.adjustable_airflow}</Text>
-            </View>
-            <View style={styles.techSpecRow}>
-              <Text style={styles.techSpecLabel}>Pre-Dive Mode</Text>
-              <Text style={styles.techSpecValue}>{regulator.pre_dive_mode}</Text>
-            </View>
-            <View style={styles.techSpecRow}>
-              <Text style={styles.techSpecLabel}>Weight (g)</Text>
-              <Text style={styles.techSpecValue}>{regulator.weights_base_on_yoke}</Text>
-            </View>
-            <View style={styles.techSpecRow}>
-              <Text style={styles.techSpecLabel}>Material</Text>
-              <Text style={styles.techSpecValue}>{regulator.material}</Text>
-            </View>
-            <View style={styles.techSpecRow}>
-              <Text style={styles.techSpecLabel}>Dive Type</Text>
-              <Text style={styles.techSpecValue}>{regulator.dive_type}</Text>
-            </View>
-            <View style={styles.techSpecRow}>
-              <Text style={styles.techSpecLabel}>Airflow at 200bar</Text>
-              <Text style={styles.techSpecValue}>{regulator.airflow_at_200bar}</Text>
-            </View>
-          </View>
-        </View>
-      );
-    } else if (product.type === 'bcd' && techDetails.bcd) {
-      const bcd = techDetails.bcd;
-      return (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Technical Specifications</Text>
-          <View style={styles.techSpecsTable}>
-            <View style={styles.techSpecRow}>
-              <Text style={styles.techSpecLabel}>BCD Type</Text>
-              <Text style={styles.techSpecValue}>{bcd.type}</Text>
-            </View>
-            <View style={styles.techSpecRow}>
-              <Text style={styles.techSpecLabel}>Weight Pocket</Text>
-              <Text style={styles.techSpecValue}>{bcd.weight_pocket}</Text>
-            </View>
-            <View style={styles.techSpecRow}>
-              <Text style={styles.techSpecLabel}>Quick Release</Text>
-              <Text style={styles.techSpecValue}>{bcd.quick_release}</Text>
-            </View>
-            <View style={styles.techSpecRow}>
-              <Text style={styles.techSpecLabel}>Number of Pockets</Text>
-              <Text style={styles.techSpecValue}>{bcd.no_pockets}</Text>
-            </View>
-            <View style={styles.techSpecRow}>
-              <Text style={styles.techSpecLabel}>Back-Trim Pocket</Text>
-              <Text style={styles.techSpecValue}>{bcd.back_trim_pocket}</Text>
-            </View>
-            <View style={styles.techSpecRow}>
-              <Text style={styles.techSpecLabel}>Weight (kg)</Text>
-              <Text style={styles.techSpecValue}>{bcd.weight_kg}</Text>
-            </View>
-            <View style={styles.techSpecRow}>
-              <Text style={styles.techSpecLabel}>Has Size Options</Text>
-              <Text style={styles.techSpecValue}>{bcd.has_size}</Text>
-            </View>
-            <View style={styles.techSpecRow}>
-              <Text style={styles.techSpecLabel}>Lift Capacity (kg)</Text>
-              <Text style={styles.techSpecValue}>{bcd.lift_capacity_base_on_largest_size_kg}</Text>
-            </View>
-          </View>
-        </View>
-      );
-    }
-    
-    return null;
-  };
-  
+
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.brand}>{product.brand}</Text>
-        <Text style={styles.name}>{product.name}</Text>
-        <View style={styles.categoryContainer}>
-          <Text style={styles.category}>{product.specifications?.category || product.type}</Text>
+      <View style={styles.imageContainer}>
+        <View style={styles.placeholderImageBox}>
+          <Text style={styles.placeholderImageText}>{product.name}</Text>
         </View>
       </View>
       
-      <View style={styles.priceContainer}>
-        <Text style={styles.priceLabel}>Price</Text>
-        <Text style={styles.price}>${product.price.toFixed(2)}</Text>
+      <View style={styles.headerContainer}>
+        <Text style={styles.productName}>{product.name}</Text>
+        <Text style={styles.productBrand}>{product.brand}</Text>
+        <Text style={styles.productPrice}>${product.price.toFixed(2)}</Text>
       </View>
       
-      {renderTechnicalSpecs()}
+      {/* Competitor Price Section */}
+      <View style={styles.sectionContainer}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Competitor Prices</Text>
+          <TouchableOpacity 
+            style={styles.refreshButton} 
+            onPress={fetchCompetitorPrices}
+            disabled={pricesLoading}
+          >
+            <Text style={styles.refreshButtonText}>
+              {pricesLoading ? 'Loading...' : 'Refresh'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        
+        {pricesLoading ? (
+          <View style={styles.priceLoadingContainer}>
+            <ActivityIndicator size="small" color="#0066cc" />
+            <Text style={styles.priceLoadingText}>Fetching current prices...</Text>
+          </View>
+        ) : competitorPrices && Object.keys(competitorPrices).length > 0 ? (
+          <View style={styles.pricesContainer}>
+            {Object.entries(competitorPrices).map(([competitor, data]) => (
+              <View key={competitor} style={styles.priceRow}>
+                <Text style={styles.competitorName}>{competitor}</Text>
+                <Text 
+                  style={[
+                    styles.competitorPrice, 
+                    data.price < product.price ? styles.betterPrice : null
+                  ]}
+                >
+                  ${data.price.toFixed(2)}
+                  {data.price < product.price && ' ⚠️'}
+                </Text>
+                {!data.isLive && (
+                  <Text style={styles.outdatedPrice}>
+                    Last updated: {data.lastUpdated.toLocaleDateString()}
+                  </Text>
+                )}
+              </View>
+            ))}
+          </View>
+        ) : (
+          <Text style={styles.noPricesText}>No competitor prices available. Tap Refresh to fetch prices.</Text>
+        )}
+      </View>
       
-      <CompetitorPricesComponent 
-        productId={productId}
-        productPrice={product.price}
-        onPriceComparisonPressed={handleComparePress}
-      />
+      {/* Technical Details Section */}
+      {techDetails && (
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Technical Specifications</Text>
+          <View style={styles.techDetailsContainer}>
+            {formatDetails(techDetails).map((detail, index) => (
+              <View key={index} style={styles.detailRow}>
+                <Text style={styles.detailLabel}>{detail.label}:</Text>
+                <Text style={styles.detailValue}>{detail.value}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
       
-      {/* Debug button */}
-      <TouchableOpacity 
-        style={styles.debugButton}
-        onPress={toggleDebugInfo}
-      >
-        <Text style={styles.debugButtonText}>Show Debug Info</Text>
-      </TouchableOpacity>
+      {/* Navigation Buttons */}
+      <View style={styles.buttonsContainer}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate('Comparison', { 
+            products: [product],
+            techDetails: techDetails ? [techDetails] : []
+          })}
+        >
+          <Text style={styles.buttonText}>Add to Comparison</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate('RealTimeComparison')}
+        >
+          <Text style={styles.buttonText}>View All Prices</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 };
@@ -326,153 +192,193 @@ const ProductDetailsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    padding: 16,
+    backgroundColor: '#f8f9fa',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    padding: 20,
   },
   loadingText: {
-    marginTop: 16,
+    marginTop: 10,
     fontSize: 16,
-    color: '#666',
+    color: '#333',
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 16,
+    padding: 20,
   },
   errorText: {
-    fontSize: 18,
-    color: '#cc0000',
-    marginBottom: 16,
+    fontSize: 16,
+    color: 'red',
+    textAlign: 'center',
   },
-  backButton: {
-    backgroundColor: '#0066cc',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+  imageContainer: {
+    backgroundColor: '#fff',
+    padding: 20,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e1e4e8',
+  },
+  placeholderImageBox: {
+    width: 200,
+    height: 200,
+    backgroundColor: '#f0f0f0',
     borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  backButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  header: {
-    marginBottom: 16,
-  },
-  brand: {
+  placeholderImageText: {
+    color: '#555',
     fontSize: 18,
-    color: '#666',
-  },
-  name: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginTop: 4,
-  },
-  categoryContainer: {
-    marginTop: 8,
-    backgroundColor: '#e0f0ff',
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    alignSelf: 'flex-start',
-  },
-  category: {
-    color: '#0066cc',
     fontWeight: '500',
-    fontSize: 14,
+    textAlign: 'center',
+    padding: 10,
   },
-  priceContainer: {
-    backgroundColor: '#f8f8f8',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 16,
+  headerContainer: {
+    padding: 15,
+    backgroundColor: '#fff',
+    marginBottom: 10,
   },
-  priceLabel: {
-    fontSize: 14,
-    color: '#666',
-  },
-  price: {
+  productName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#0066cc',
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 12,
     color: '#333',
   },
-  description: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: '#444',
-  },
-  techSpecsTable: {
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  techSpecRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    backgroundColor: '#fff',
-  },
-  techSpecLabel: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '500',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#f5f5f5',
-    color: '#333',
-  },
-  techSpecValue: {
-    flex: 1,
-    fontSize: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+  productBrand: {
+    fontSize: 18,
     color: '#666',
+    marginBottom: 5,
   },
-  specRow: {
+  productPrice: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#0066cc',
+    marginTop: 5,
+  },
+  sectionContainer: {
+    backgroundColor: '#fff',
+    padding: 15,
+    marginBottom: 10,
+    borderRadius: 5,
+    marginHorizontal: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  refreshButton: {
+    backgroundColor: '#0066cc',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 4,
+  },
+  refreshButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  priceLoadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+  },
+  priceLoadingText: {
+    marginLeft: 10,
+    color: '#666',
+  },
+  pricesContainer: {
+    marginTop: 5,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingVertical: 12,
+    borderBottomColor: '#e1e4e8',
   },
-  specKey: {
-    fontSize: 16,
-    color: '#555',
-    flex: 1,
-  },
-  specValue: {
+  competitorName: {
     fontSize: 16,
     color: '#333',
+    flex: 2,
+  },
+  competitorPrice: {
+    fontSize: 16,
     fontWeight: '500',
+    color: '#333',
     flex: 1,
     textAlign: 'right',
   },
-  debugButton: {
-    backgroundColor: '#f0f0f0',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 24,
+  betterPrice: {
+    color: 'red',
+    fontWeight: 'bold',
   },
-  debugButtonText: {
+  outdatedPrice: {
+    fontSize: 12,
+    color: '#999',
+    flex: 2,
+    textAlign: 'right',
+  },
+  noPricesText: {
     color: '#666',
-    fontSize: 14,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    paddingVertical: 10,
+  },
+  techDetailsContainer: {
+    marginTop: 5,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e1e4e8',
+  },
+  detailLabel: {
+    fontSize: 16,
+    color: '#666',
+    flex: 1,
+  },
+  detailValue: {
+    fontSize: 16,
+    color: '#333',
+    flex: 1,
+    fontWeight: '500',
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 15,
+    marginBottom: 20,
+  },
+  button: {
+    backgroundColor: '#0066cc',
+    padding: 12,
+    borderRadius: 5,
+    flex: 0.48,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
 

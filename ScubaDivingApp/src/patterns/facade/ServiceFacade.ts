@@ -9,67 +9,55 @@ import { IProductRepository } from '../../services/firebase/interfaces/IProductR
 import { RegulatorDetails, BCDDetails } from '../../services/firebase/repositories/ProductRepository';
 import { PriceScraperService as RealTimePriceScraperService } from '../../services/scraper/PriceScraperService';
 import { CompetitorPrice, IPriceScraperService } from '../../services/scraper/interfaces/IPriceScraperService';
+import { MultiPlatformPriceScraperService } from '../../services/scraper/MultiPlatformPriceScraperService';
+import { IProductUrlRepository } from '../../services/scraper/interfaces/IProductUrlRepository';
+import { DummyProductUrlRepository } from '../../services/scraper/repositories/DummyProductUrlRepository';
 
-// Legacy subsystem classes - kept for backward compatibility
+/**
+ * Legacy Firebase service for backward compatibility
+ * To be phased out as we migrate to the new Firebase implementation
+ */
 class FirebaseService {
-  async fetchProducts(filters?: Record<string, any>): Promise<any[]> {
-    // In a real app, this would connect to Firebase
-    console.log('Fetching products from Firebase with filters:', filters);
-    return Promise.resolve([
-      { id: '1', name: 'XTR Pro', brand: 'Scubapro', price: 799, type: 'regulator', specifications: { qualityScore: 9 }, link: 'https://www.scubapro.com/products/regulators/xtr-pro' },
-      { id: '2', name: 'Wave BCD', brand: 'Mares', price: 499, type: 'bcd', specifications: { qualityScore: 8 }, link: 'https://www.mares.com/products/bcds/wave-bcd' },
-      { id: '3', name: 'Avanti Quattro', brand: 'Mares', price: 159, type: 'fin', specifications: { qualityScore: 8.5 }, link: 'https://www.mares.com/products/fins/avanti-quattro' },
-    ]);
+  async fetchProductsByCategory(category: string): Promise<any[]> {
+    // Legacy code - this will be removed in the future
+    console.log('Using legacy fetchProductsByCategory', category);
+    return [];
   }
 
   async fetchProductDetails(productId: string): Promise<any> {
-    console.log('Fetching product details for:', productId);
-    // Mock implementation
-    return Promise.resolve({
-      id: productId,
-      name: 'XTR Pro',
-      brand: 'Scubapro',
-      price: 799,
-      type: 'regulator',
-      link: 'https://www.scubapro.com/products/regulators/xtr-pro',
-      specifications: {
-        qualityScore: 9,
-        weight: '1.2kg',
-        material: 'metal/rubber',
-        features: ['balanced diaphragm', 'adjustable breathing resistance'],
-      },
-    });
+    // Legacy code - this will be removed in the future
+    console.log('Using legacy fetchProductDetails', productId);
+    return {};
   }
-
+  
   async saveUserPreferences(userId: string, preferences: any): Promise<void> {
-    console.log('Saving user preferences for user:', userId, preferences);
+    // Legacy code - this will be removed in the future
+    console.log('Using legacy saveUserPreferences', userId, preferences);
     return Promise.resolve();
   }
 }
 
+/**
+ * Legacy Price scraper service for backward compatibility
+ * To be phased out as we migrate to the new implementation
+ */
 class PriceScraperService {
-  async fetchCompetitorPrices(productId: string): Promise<Record<string, number>> {
-    console.log('Fetching competitor prices for product:', productId);
-    // Mock implementation
-    return Promise.resolve({
-      'Competitor A': 849,
-      'Competitor B': 799,
-      'Competitor C': 779,
-    });
+  async fetchCompetitorPrices(productId: string): Promise<any> {
+    // Legacy code - this will be removed in the future
+    console.log('Using legacy fetchCompetitorPrices', productId);
+    return {};
   }
 }
 
+/**
+ * Legacy Recommendation service for backward compatibility
+ * To be phased out as we migrate to the new implementation
+ */
 class RecommendationService {
-  async getRecommendations(
-    userProfile: { experienceLevel: string },
-    preferences: Record<string, any>
-  ): Promise<any[]> {
-    console.log('Getting recommendations for user:', userProfile, 'with preferences:', preferences);
-    // Mock implementation
-    return Promise.resolve([
-      { id: '5', name: 'A2', brand: 'Scubapro', price: 1200, type: 'regulator', score: 9.5 },
-      { id: '6', name: 'Hydros Pro', brand: 'Scubapro', price: 899, type: 'bcd', score: 9.2 },
-    ]);
+  getRecommendationsForUser(userProfile: string): any[] {
+    // Legacy code - this will be removed in the future
+    console.log('Using legacy getRecommendationsForUser', userProfile);
+    return [];
   }
 }
 
@@ -90,6 +78,12 @@ export class ServiceFacade {
   // Real-time price scraper service
   private realTimePriceScraperService: IPriceScraperService;
   
+  // Multi-platform price scraper service (new implementation)
+  private multiPlatformPriceScraperService: IPriceScraperService;
+  
+  // Product URL repository
+  private productUrlRepository: IProductUrlRepository;
+  
   // Use Firebase flag - set to true by default to use real Firebase
   private useRealFirebase: boolean = true;
 
@@ -103,8 +97,14 @@ export class ServiceFacade {
     this.firebaseService = FirebaseServiceImpl.getInstance();
     this.productRepository = new ProductRepository();
     
-    // Initialize real-time price scraper service
+    // Initialize real-time price scraper service (original implementation)
     this.realTimePriceScraperService = RealTimePriceScraperService.getInstance();
+    
+    // Initialize new multi-platform price scraper service
+    this.multiPlatformPriceScraperService = MultiPlatformPriceScraperService.getInstance();
+    
+    // Initialize product URL repository
+    this.productUrlRepository = new DummyProductUrlRepository();
   }
   
   /**
@@ -343,7 +343,7 @@ export class ServiceFacade {
   ): Promise<any[]> {
     // Still using legacy implementation for preferences and recommendations
     await this.legacyFirebaseService.saveUserPreferences(userId, preferences);
-    return this.recommendationService.getRecommendations(userProfile, preferences);
+    return this.recommendationService.getRecommendationsForUser(userProfile.experienceLevel);
   }
 
   async createProduct(product: Product): Promise<void> {
@@ -362,10 +362,60 @@ export class ServiceFacade {
    */
   async getLastFetchedCompetitorPrices(productId: string): Promise<Record<string, CompetitorPrice> | null> {
     try {
-      return await this.realTimePriceScraperService.getLastFetchedPrices(productId);
+      // Use the multi-platform service as the primary source
+      const prices = await this.multiPlatformPriceScraperService.getLastFetchedPrices(productId);
+      
+      // If no prices found and we have the old implementation, try that as a fallback
+      if (!prices) {
+        return await this.realTimePriceScraperService.getLastFetchedPrices(productId);
+      }
+      
+      return prices;
     } catch (error) {
       console.error('Error getting last fetched competitor prices:', error);
-      return null;
+      
+      // Try the fallback as a last resort
+      try {
+        return await this.realTimePriceScraperService.getLastFetchedPrices(productId);
+      } catch {
+        return null;
+      }
+    }
+  }
+  
+  /**
+   * Fetches competitor prices for a product
+   * @param productId Product ID
+   * @param productModel Product model
+   * @param productBrand Product brand
+   * @returns Promise with competitor prices
+   */
+  async fetchCompetitorPrices(
+    productId: string,
+    productModel: string,
+    productBrand: string
+  ): Promise<Record<string, CompetitorPrice>> {
+    try {
+      // Use the multi-platform service as the primary implementation
+      return await this.multiPlatformPriceScraperService.fetchCompetitorPrices(
+        productId,
+        productModel,
+        productBrand
+      );
+    } catch (error) {
+      console.error('Error fetching competitor prices with multi-platform service:', error);
+      
+      // Fall back to the original implementation if the new one fails
+      try {
+        return await this.realTimePriceScraperService.fetchCompetitorPrices(
+          productId,
+          productModel,
+          productBrand
+        );
+      } catch (fallbackError) {
+        console.error('Error fetching competitor prices with fallback service:', fallbackError);
+        throw fallbackError;
+      }
     }
   }
 } 
