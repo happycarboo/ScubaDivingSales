@@ -100,6 +100,31 @@ cd ScubaDivingApp
 npm install
 ```
 
+### Required Dependencies
+
+The app requires the following key dependencies to function properly:
+
+1. **React Navigation** - For app navigation
+2. **Firebase** - For database and authentication
+3. **Axios** - For HTTP requests
+4. **React Native Cheerio** - For HTML parsing in web scraping functionality
+5. **Expo FileSystem** - For file management and image downloading
+
+If you encounter any issues with missing dependencies, ensure you install them:
+
+```bash
+# Core dependencies
+npm install @react-native-async-storage/async-storage @react-navigation/native @react-navigation/native-stack firebase axios
+
+# HTML parsing for product extraction
+npm install react-native-cheerio
+
+# UI and navigation components
+npm install react-native-gesture-handler react-native-safe-area-context react-native-screens
+```
+
+> **Important Note**: The product extraction feature uses `react-native-cheerio` rather than standard `cheerio` because the standard version is not compatible with React Native due to Node.js dependencies.
+
 ### Running the App
 
 1. **Start the development server**
@@ -884,4 +909,73 @@ The application expects a Firestore database with the following structure:
       - Key: Competitor name (e.g., "Lazada", "Shopee")
       - Value: URL to the competitor's product page
 
-[... rest of the existing content ...] 
+[... rest of the existing content ...]
+
+### Troubleshooting Common Issues
+
+#### 1. Cheerio Module Resolution Errors
+
+If you encounter an error like:
+```
+Unable to resolve module cheerio from /Users/.../ScubaDivingApp/src/services/scraper/strategies/ScubaWarehouseComprehensiveStrategy.ts
+```
+
+or:
+
+```
+Unable to resolve module node:stream from /Users/.../ScubaDivingApp/node_modules/cheerio/dist/commonjs/index.js
+```
+
+**Solution**: The standard cheerio package relies on Node.js modules not available in React Native. Use react-native-cheerio instead:
+
+```bash
+# Remove standard cheerio if installed
+npm uninstall cheerio
+
+# Install React Native compatible version
+npm install react-native-cheerio
+```
+
+Then update your imports from:
+```typescript
+import * as cheerio from 'cheerio';
+```
+
+To:
+```typescript
+import * as cheerio from 'react-native-cheerio';
+```
+
+If you're experiencing TypeScript errors, create a type declaration file (e.g., `src/types/react-native-cheerio.d.ts`):
+```typescript
+declare module 'react-native-cheerio' {
+  export function load(html: string): CheerioStatic;
+  
+  interface CheerioStatic {
+    (selector: string): CheerioElement;
+    html(): string;
+  }
+  
+  interface CheerioElement {
+    length: number;
+    text(): string;
+    attr(name: string): string | undefined;
+    find(selector: string): CheerioElement;
+    html(): string;
+  }
+}
+```
+
+#### 2. Expo FileSystem Issues
+
+If you encounter errors with FileSystem operations, ensure:
+
+1. The expo-file-system package is installed
+2. You're using proper FileSystem directory paths (documentDirectory, cacheDirectory, etc.)
+3. You have proper permissions for directory creation and file writing
+
+### Testing
+
+```bash
+pkill -f "expo" && xcrun simctl shutdown all
+``` 
