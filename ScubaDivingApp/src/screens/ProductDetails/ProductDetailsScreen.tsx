@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image, Platform } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { RootStackParamList, ProductDetailsScreenNavigationProp } from '../../types/navigation';
 import { ServiceFacade } from '../../patterns/facade/ServiceFacade';
@@ -7,6 +7,23 @@ import { CompetitorPrice } from '../../services/scraper/interfaces/IPriceScraper
 
 // We'll use any because RouteProp has compatibility issues
 type ProductDetailsScreenRouteProp = any;
+
+// Add a function to filter competitor prices to remove dummy competitors
+const filterRealCompetitors = (prices: Record<string, any> | null) => {
+  if (!prices) return null;
+  
+  const filteredPrices: Record<string, any> = {};
+  
+  // Filter out competitors A, B, C and keep only real competitors
+  Object.entries(prices).forEach(([competitor, data]) => {
+    // Keep only real competitors (not Competitor A, B, C)
+    if (!competitor.startsWith('Competitor ')) {
+      filteredPrices[competitor] = data;
+    }
+  });
+  
+  return filteredPrices;
+};
 
 const ProductDetailsScreen = () => {
   const route = useRoute<ProductDetailsScreenRouteProp>();
@@ -31,9 +48,9 @@ const ProductDetailsScreen = () => {
         setProduct(result.product);
         setTechDetails(result.techDetails);
         
-        // Get last fetched competitor prices (if any)
+        // Get last fetched competitor prices (if any) and filter out dummy competitors
         const prices = await serviceFacade.getLastFetchedCompetitorPrices(productId);
-        setCompetitorPrices(prices);
+        setCompetitorPrices(filterRealCompetitors(prices));
         
         // Try to load the product image
         await loadProductImage(result.product);
@@ -96,6 +113,7 @@ const ProductDetailsScreen = () => {
     }
   };
 
+  // Modify the fetchCompetitorPrices function to filter out dummy competitors
   const fetchCompetitorPrices = async () => {
     if (!product) return;
     
@@ -107,7 +125,9 @@ const ProductDetailsScreen = () => {
         product.name,
         product.brand
       );
-      setCompetitorPrices(prices);
+      
+      // Filter out dummy competitors
+      setCompetitorPrices(filterRealCompetitors(prices));
     } catch (error) {
       console.error('Error fetching competitor prices:', error);
     } finally {

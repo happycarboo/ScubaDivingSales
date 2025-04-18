@@ -1,23 +1,8 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, doc, setDoc } from 'firebase/firestore';
-import { ServiceFacade } from '../patterns/facade/ServiceFacade';
-import { ProductFactory } from '../patterns/factory/ProductFactory';
-import { firebaseConfig } from '../services/firebase/config/firebase.config';
+// Auto-generated from current Firestore database on 4/18/2025, 11:04:00 PM
+// Copy these arrays to your updateFirestore.ts or seedProducts.ts files
 
-async function seedDatabase() {
-  try {
-    console.log('Initializing Firebase and connecting to Firestore...');
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    
-    // Initialize ServiceFacade
-    const serviceFacade = ServiceFacade.getInstance();
-    await serviceFacade.initialize();
-    
-    console.log('Seeding products collection...');
-    
-    // Seed main products collection
-    const productsData = [
+// Products collection data
+export const productsData = [
   {
     "category": "regulator",
     "brand": "ScubaPro",
@@ -131,9 +116,9 @@ async function seedDatabase() {
     "price": 1399
   }
 ];
-    
-    // Seed regulators details collection
-    const regulatorsData = [
+
+// Regulators collection data
+export const regulatorsData = [
   {
     "prod_id": "1",
     "high_pressure_port": 2,
@@ -177,72 +162,46 @@ async function seedDatabase() {
     "id": "3"
   }
 ];
-    
-    // Seed BCD details collection
-    const bcdData = [
-      {
-        prod_id: '4',
-        category: 'BCD',
-        type: 'Jacket',
-        weight_pocket: 'Yes',
-        quick_release: 'Yes',
-        no_pockets: 2,
-        back_trim_pocket: 'Yes',
-        weight_kg: 2.7,
-        has_size: 'Yes',
-        lift_capacity_base_on_largest_size_kg: 17.3
-      },
-      {
-        prod_id: '5',
-        category: 'BCD',
-        type: 'Backplate',
-        weight_pocket: 'Yes',
-        quick_release: 'No',
-        no_pockets: 2,
-        back_trim_pocket: 'Yes',
-        weight_kg: 2.3,
-        has_size: 'Yes',
-        lift_capacity_base_on_largest_size_kg: 13.2
-      },
-      {
-        prod_id: '6',
-        category: 'BCD',
-        type: 'Jacket',
-        weight_pocket: 'Yes',
-        quick_release: 'Yes',
-        no_pockets: 2,
-        back_trim_pocket: 'Yes',
-        weight_kg: 2.8,
-        has_size: 'Yes',
-        lift_capacity_base_on_largest_size_kg: 16.3
-      }
-    ];
-    
-    // Add products to main products collection
-    console.log('Adding main products data...');
-    for (const product of productsData) {
-      await setDoc(doc(db, 'products', product.id), product);
-      console.log(`Added product: ${product.brand} ${product.model}`);
-    }
-    
-    // Add regulator details
-    console.log('Adding regulator details...');
-    for (const regulator of regulatorsData) {
-      await setDoc(doc(db, 'regulators', regulator.prod_id), regulator);
-      console.log(`Added regulator details for product ID: ${regulator.prod_id}`);
-    }
-    
-    // Add BCD details
-    console.log('Adding BCD details...');
-    for (const bcd of bcdData) {
-      await setDoc(doc(db, 'bcds', bcd.prod_id), bcd);
-      console.log(`Added BCD details for product ID: ${bcd.prod_id}`);
-    }
-    
-    console.log('Successfully seeded all data!');
-  } catch (error) {
-    console.error('Error seeding data:', error);
-  }
-}
 
-seedDatabase(); 
+// BCDs collection data
+export const bcdsData = [
+  {
+    "quick_release": "Yes",
+    "type": "Jacket",
+    "weight_kg": 2.7,
+    "prod_id": "4",
+    "no_pockets": 2,
+    "back_trim_pocket": "YES",
+    "lift_capacity_base_on_largest_size_kg": 17.3,
+    "category": "BCD",
+    "has_size": "YES",
+    "weight_pocket": "Yes",
+    "id": "1"
+  },
+  {
+    "category": "BCD",
+    "quick_release": "No",
+    "has_size": "Yes",
+    "weight_pocket": "Yes",
+    "no_pockets": 2,
+    "back_trim_pocket": "Yes",
+    "lift_capacity_base_on_largest_size_kg": 13.2,
+    "type": "Backplate",
+    "weight_kg": 2.3,
+    "prod_id": "5",
+    "id": "2"
+  },
+  {
+    "quick_release": "Yes",
+    "has_size": "Yes",
+    "lift_capacity_base_on_largest_size_kg": 16.3,
+    "category": "BCD",
+    "weight_kg": 2.8,
+    "prod_id": "6",
+    "back_trim_pocket": "Yes",
+    "type": "Jacket",
+    "weight_pocket": "Yes",
+    "no_pockets": 2,
+    "id": "3"
+  }
+];
