@@ -344,32 +344,6 @@ const priceService = new PriceScraperService();
 const prices = await priceService.fetchCompetitorPrices(productId);
 ```
 
-#### 4. Strategy Pattern （extra）
-
-**Locations:** `src/services/scraper/strategies/`
-
-**Core Requirement:** Define a family of algorithms, encapsulate each one, and make them interchangeable.
-
-**Implementation Rules:**
-- Create platform-specific strategies that implement a common interface
-- Use a registry to manage and access available strategies
-- Select strategies based on URL or other criteria
-- Each strategy encapsulates its own extraction algorithm
-
-**Usage Example:**
-```typescript
-// CORRECT: Using the strategy pattern through registry
-const registry = PlatformStrategyRegistry.getInstance();
-const price = await registry.extractPriceFromUrl(url);
-
-// INCORRECT: Direct strategy usage with conditionals
-let price;
-if (url.includes('lazada')) {
-  price = extractLazadaPrice(url);
-} else if (url.includes('shopee')) {
-  price = extractShopeePrice(url);
-}
-```
 
 
 
