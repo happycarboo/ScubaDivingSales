@@ -283,7 +283,7 @@ const IntelligentSearchScreen = () => {
     </TouchableOpacity>
   );
   
-  // Render filter button
+  // Update the filter button rendering for a more compact design
   const renderFilterButton = (
     label: string, 
     isSelected: boolean, 
@@ -307,211 +307,189 @@ const IntelligentSearchScreen = () => {
     </TouchableOpacity>
   );
   
-  // Render BCD filters
+  // Render BCD filters in a more compact way
   const renderBCDFilters = () => (
     <View style={styles.filtersContainer}>
-      <View style={styles.filterSection}>
-        <Text style={styles.filterTitle}>BCD Type</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.filterButtonsRow}>
-            {renderFilterButton('All', bcdFilters.type === 'All', () => 
-              setBcdFilters({...bcdFilters, type: 'All'})
-            )}
-            {renderFilterButton('Jacket', bcdFilters.type === 'Jacket', () => 
-              setBcdFilters({...bcdFilters, type: 'Jacket'})
-            )}
-            {renderFilterButton('Backplate', bcdFilters.type === 'Backplate', () => 
-              setBcdFilters({...bcdFilters, type: 'Backplate'})
-            )}
-          </View>
-        </ScrollView>
+      <View style={styles.filterRow}>
+        <Text style={styles.filterTitle}>BCD Type:</Text>
+        <View style={styles.filterButtonsRow}>
+          {renderFilterButton('All', bcdFilters.type === 'All', () => 
+            setBcdFilters({...bcdFilters, type: 'All'})
+          )}
+          {renderFilterButton('Jacket', bcdFilters.type === 'Jacket', () => 
+            setBcdFilters({...bcdFilters, type: 'Jacket'})
+          )}
+          {renderFilterButton('Backplate', bcdFilters.type === 'Backplate', () => 
+            setBcdFilters({...bcdFilters, type: 'Backplate'})
+          )}
+        </View>
       </View>
       
-      <View style={styles.filterSection}>
-        <Text style={styles.filterTitle}>Weight Pocket</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.filterButtonsRow}>
-            {renderFilterButton('All', bcdFilters.weightPocket === 'All', () => 
-              setBcdFilters({...bcdFilters, weightPocket: 'All'})
-            )}
-            {renderFilterButton('Yes', bcdFilters.weightPocket === 'Yes', () => 
-              setBcdFilters({...bcdFilters, weightPocket: 'Yes'})
-            )}
-            {renderFilterButton('No', bcdFilters.weightPocket === 'No', () => 
-              setBcdFilters({...bcdFilters, weightPocket: 'No'})
-            )}
-          </View>
-        </ScrollView>
+      <View style={styles.filterRow}>
+        <Text style={styles.filterTitle}>Weight Pocket:</Text>
+        <View style={styles.filterButtonsRow}>
+          {renderFilterButton('All', bcdFilters.weightPocket === 'All', () => 
+            setBcdFilters({...bcdFilters, weightPocket: 'All'})
+          )}
+          {renderFilterButton('Yes', bcdFilters.weightPocket === 'Yes', () => 
+            setBcdFilters({...bcdFilters, weightPocket: 'Yes'})
+          )}
+          {renderFilterButton('No', bcdFilters.weightPocket === 'No', () => 
+            setBcdFilters({...bcdFilters, weightPocket: 'No'})
+          )}
+        </View>
       </View>
       
-      <View style={styles.filterSection}>
-        <Text style={styles.filterTitle}>Quick Release</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.filterButtonsRow}>
-            {renderFilterButton('All', bcdFilters.quickRelease === 'All', () => 
-              setBcdFilters({...bcdFilters, quickRelease: 'All'})
-            )}
-            {renderFilterButton('Yes', bcdFilters.quickRelease === 'Yes', () => 
-              setBcdFilters({...bcdFilters, quickRelease: 'Yes'})
-            )}
-            {renderFilterButton('No', bcdFilters.quickRelease === 'No', () => 
-              setBcdFilters({...bcdFilters, quickRelease: 'No'})
-            )}
-          </View>
-        </ScrollView>
+      <View style={styles.filterRow}>
+        <Text style={styles.filterTitle}>Quick Release:</Text>
+        <View style={styles.filterButtonsRow}>
+          {renderFilterButton('All', bcdFilters.quickRelease === 'All', () => 
+            setBcdFilters({...bcdFilters, quickRelease: 'All'})
+          )}
+          {renderFilterButton('Yes', bcdFilters.quickRelease === 'Yes', () => 
+            setBcdFilters({...bcdFilters, quickRelease: 'Yes'})
+          )}
+          {renderFilterButton('No', bcdFilters.quickRelease === 'No', () => 
+            setBcdFilters({...bcdFilters, quickRelease: 'No'})
+          )}
+        </View>
       </View>
       
-      <View style={styles.filterSection}>
-        <Text style={styles.filterTitle}>Weight Range</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.filterButtonsRow}>
-            {renderFilterButton('All', bcdFilters.weightRange === 'All', () => 
-              setBcdFilters({...bcdFilters, weightRange: 'All'})
-            )}
-            {renderFilterButton('Light (<2.5kg)', bcdFilters.weightRange === 'Light (<2.5kg)', () => 
-              setBcdFilters({...bcdFilters, weightRange: 'Light (<2.5kg)'})
-            )}
-            {renderFilterButton('Medium (2.5-3kg)', bcdFilters.weightRange === 'Medium (2.5-3kg)', () => 
-              setBcdFilters({...bcdFilters, weightRange: 'Medium (2.5-3kg)'})
-            )}
-            {renderFilterButton('Heavy (>3kg)', bcdFilters.weightRange === 'Heavy (>3kg)', () => 
-              setBcdFilters({...bcdFilters, weightRange: 'Heavy (>3kg)'})
-            )}
-          </View>
-        </ScrollView>
+      <View style={styles.filterRow}>
+        <Text style={styles.filterTitle}>Weight Range:</Text>
+        <View style={styles.filterButtonsRow}>
+          {renderFilterButton('All', bcdFilters.weightRange === 'All', () => 
+            setBcdFilters({...bcdFilters, weightRange: 'All'})
+          )}
+          {renderFilterButton('Light (<2.5kg)', bcdFilters.weightRange === 'Light (<2.5kg)', () => 
+            setBcdFilters({...bcdFilters, weightRange: 'Light (<2.5kg)'})
+          )}
+          {renderFilterButton('Medium (2.5-3kg)', bcdFilters.weightRange === 'Medium (2.5-3kg)', () => 
+            setBcdFilters({...bcdFilters, weightRange: 'Medium (2.5-3kg)'})
+          )}
+          {renderFilterButton('Heavy (>3kg)', bcdFilters.weightRange === 'Heavy (>3kg)', () => 
+            setBcdFilters({...bcdFilters, weightRange: 'Heavy (>3kg)'})
+          )}
+        </View>
       </View>
       
-      <View style={styles.filterSection}>
-        <Text style={styles.filterTitle}>Lift Capacity</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.filterButtonsRow}>
-            {renderFilterButton('All', bcdFilters.liftCapacityRange === 'All', () => 
-              setBcdFilters({...bcdFilters, liftCapacityRange: 'All'})
-            )}
-            {renderFilterButton('Low (<15kg)', bcdFilters.liftCapacityRange === 'Low (<15kg)', () => 
-              setBcdFilters({...bcdFilters, liftCapacityRange: 'Low (<15kg)'})
-            )}
-            {renderFilterButton('Medium (15-17kg)', bcdFilters.liftCapacityRange === 'Medium (15-17kg)', () => 
-              setBcdFilters({...bcdFilters, liftCapacityRange: 'Medium (15-17kg)'})
-            )}
-            {renderFilterButton('High (>17kg)', bcdFilters.liftCapacityRange === 'High (>17kg)', () => 
-              setBcdFilters({...bcdFilters, liftCapacityRange: 'High (>17kg)'})
-            )}
-          </View>
-        </ScrollView>
+      <View style={styles.filterRow}>
+        <Text style={styles.filterTitle}>Lift Capacity:</Text>
+        <View style={styles.filterButtonsRow}>
+          {renderFilterButton('All', bcdFilters.liftCapacityRange === 'All', () => 
+            setBcdFilters({...bcdFilters, liftCapacityRange: 'All'})
+          )}
+          {renderFilterButton('Low (<15kg)', bcdFilters.liftCapacityRange === 'Low (<15kg)', () => 
+            setBcdFilters({...bcdFilters, liftCapacityRange: 'Low (<15kg)'})
+          )}
+          {renderFilterButton('Medium (15-17kg)', bcdFilters.liftCapacityRange === 'Medium (15-17kg)', () => 
+            setBcdFilters({...bcdFilters, liftCapacityRange: 'Medium (15-17kg)'})
+          )}
+          {renderFilterButton('High (>17kg)', bcdFilters.liftCapacityRange === 'High (>17kg)', () => 
+            setBcdFilters({...bcdFilters, liftCapacityRange: 'High (>17kg)'})
+          )}
+        </View>
       </View>
     </View>
   );
   
-  // Render Regulator filters
+  // Render Regulator filters in a more compact way
   const renderRegulatorFilters = () => (
     <View style={styles.filtersContainer}>
-      <View style={styles.filterSection}>
-        <Text style={styles.filterTitle}>Adjustable Airflow</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.filterButtonsRow}>
-            {renderFilterButton('All', regulatorFilters.adjustableAirflow === 'All', () => 
-              setRegulatorFilters({...regulatorFilters, adjustableAirflow: 'All'})
-            )}
-            {renderFilterButton('Yes', regulatorFilters.adjustableAirflow === 'YES', () => 
-              setRegulatorFilters({...regulatorFilters, adjustableAirflow: 'YES'})
-            )}
-            {renderFilterButton('No', regulatorFilters.adjustableAirflow === 'NO', () => 
-              setRegulatorFilters({...regulatorFilters, adjustableAirflow: 'NO'})
-            )}
-          </View>
-        </ScrollView>
+      <View style={styles.filterRow}>
+        <Text style={styles.filterTitle}>Adjustable Airflow:</Text>
+        <View style={styles.filterButtonsRow}>
+          {renderFilterButton('All', regulatorFilters.adjustableAirflow === 'All', () => 
+            setRegulatorFilters({...regulatorFilters, adjustableAirflow: 'All'})
+          )}
+          {renderFilterButton('Yes', regulatorFilters.adjustableAirflow === 'YES', () => 
+            setRegulatorFilters({...regulatorFilters, adjustableAirflow: 'YES'})
+          )}
+          {renderFilterButton('No', regulatorFilters.adjustableAirflow === 'NO', () => 
+            setRegulatorFilters({...regulatorFilters, adjustableAirflow: 'NO'})
+          )}
+        </View>
       </View>
       
-      <View style={styles.filterSection}>
-        <Text style={styles.filterTitle}>Pre-Dive Mode</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.filterButtonsRow}>
-            {renderFilterButton('All', regulatorFilters.preDiveMode === 'All', () => 
-              setRegulatorFilters({...regulatorFilters, preDiveMode: 'All'})
-            )}
-            {renderFilterButton('Yes', regulatorFilters.preDiveMode === 'YES', () => 
-              setRegulatorFilters({...regulatorFilters, preDiveMode: 'YES'})
-            )}
-            {renderFilterButton('No', regulatorFilters.preDiveMode === 'NO', () => 
-              setRegulatorFilters({...regulatorFilters, preDiveMode: 'NO'})
-            )}
-          </View>
-        </ScrollView>
+      <View style={styles.filterRow}>
+        <Text style={styles.filterTitle}>Pre-Dive Mode:</Text>
+        <View style={styles.filterButtonsRow}>
+          {renderFilterButton('All', regulatorFilters.preDiveMode === 'All', () => 
+            setRegulatorFilters({...regulatorFilters, preDiveMode: 'All'})
+          )}
+          {renderFilterButton('Yes', regulatorFilters.preDiveMode === 'YES', () => 
+            setRegulatorFilters({...regulatorFilters, preDiveMode: 'YES'})
+          )}
+          {renderFilterButton('No', regulatorFilters.preDiveMode === 'NO', () => 
+            setRegulatorFilters({...regulatorFilters, preDiveMode: 'NO'})
+          )}
+        </View>
       </View>
       
-      <View style={styles.filterSection}>
-        <Text style={styles.filterTitle}>High Pressure Ports</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.filterButtonsRow}>
-            {renderFilterButton('All', regulatorFilters.hpPortRange === 'All', () => 
-              setRegulatorFilters({...regulatorFilters, hpPortRange: 'All'})
-            )}
-            {renderFilterButton('1', regulatorFilters.hpPortRange === '1', () => 
-              setRegulatorFilters({...regulatorFilters, hpPortRange: '1'})
-            )}
-            {renderFilterButton('2 or more', regulatorFilters.hpPortRange === '2 or more', () => 
-              setRegulatorFilters({...regulatorFilters, hpPortRange: '2 or more'})
-            )}
-          </View>
-        </ScrollView>
+      <View style={styles.filterRow}>
+        <Text style={styles.filterTitle}>High Pressure Ports:</Text>
+        <View style={styles.filterButtonsRow}>
+          {renderFilterButton('All', regulatorFilters.hpPortRange === 'All', () => 
+            setRegulatorFilters({...regulatorFilters, hpPortRange: 'All'})
+          )}
+          {renderFilterButton('1', regulatorFilters.hpPortRange === '1', () => 
+            setRegulatorFilters({...regulatorFilters, hpPortRange: '1'})
+          )}
+          {renderFilterButton('2 or more', regulatorFilters.hpPortRange === '2 or more', () => 
+            setRegulatorFilters({...regulatorFilters, hpPortRange: '2 or more'})
+          )}
+        </View>
       </View>
       
-      <View style={styles.filterSection}>
-        <Text style={styles.filterTitle}>Low Pressure Ports</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.filterButtonsRow}>
-            {renderFilterButton('All', regulatorFilters.lpPortRange === 'All', () => 
-              setRegulatorFilters({...regulatorFilters, lpPortRange: 'All'})
-            )}
-            {renderFilterButton('Few (1-3)', regulatorFilters.lpPortRange === 'Few (1-3)', () => 
-              setRegulatorFilters({...regulatorFilters, lpPortRange: 'Few (1-3)'})
-            )}
-            {renderFilterButton('Many (4+)', regulatorFilters.lpPortRange === 'Many (4+)', () => 
-              setRegulatorFilters({...regulatorFilters, lpPortRange: 'Many (4+)'})
-            )}
-          </View>
-        </ScrollView>
+      <View style={styles.filterRow}>
+        <Text style={styles.filterTitle}>Low Pressure Ports:</Text>
+        <View style={styles.filterButtonsRow}>
+          {renderFilterButton('All', regulatorFilters.lpPortRange === 'All', () => 
+            setRegulatorFilters({...regulatorFilters, lpPortRange: 'All'})
+          )}
+          {renderFilterButton('Few (1-3)', regulatorFilters.lpPortRange === 'Few (1-3)', () => 
+            setRegulatorFilters({...regulatorFilters, lpPortRange: 'Few (1-3)'})
+          )}
+          {renderFilterButton('Many (4+)', regulatorFilters.lpPortRange === 'Many (4+)', () => 
+            setRegulatorFilters({...regulatorFilters, lpPortRange: 'Many (4+)'})
+          )}
+        </View>
       </View>
       
-      <View style={styles.filterSection}>
-        <Text style={styles.filterTitle}>Airflow</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.filterButtonsRow}>
-            {renderFilterButton('All', regulatorFilters.airflowRange === 'All', () => 
-              setRegulatorFilters({...regulatorFilters, airflowRange: 'All'})
-            )}
-            {renderFilterButton('Low (<1500 l/min)', regulatorFilters.airflowRange === 'Low (<1500 l/min)', () => 
-              setRegulatorFilters({...regulatorFilters, airflowRange: 'Low (<1500 l/min)'})
-            )}
-            {renderFilterButton('Medium (1500-1800)', regulatorFilters.airflowRange === 'Medium (1500-1800 l/min)', () => 
-              setRegulatorFilters({...regulatorFilters, airflowRange: 'Medium (1500-1800 l/min)'})
-            )}
-            {renderFilterButton('High (>1800 l/min)', regulatorFilters.airflowRange === 'High (>1800 l/min)', () => 
-              setRegulatorFilters({...regulatorFilters, airflowRange: 'High (>1800 l/min)'})
-            )}
-          </View>
-        </ScrollView>
+      <View style={styles.filterRow}>
+        <Text style={styles.filterTitle}>Airflow:</Text>
+        <View style={styles.filterButtonsRow}>
+          {renderFilterButton('All', regulatorFilters.airflowRange === 'All', () => 
+            setRegulatorFilters({...regulatorFilters, airflowRange: 'All'})
+          )}
+          {renderFilterButton('Low', regulatorFilters.airflowRange === 'Low (<1500 l/min)', () => 
+            setRegulatorFilters({...regulatorFilters, airflowRange: 'Low (<1500 l/min)'})
+          )}
+          {renderFilterButton('Medium', regulatorFilters.airflowRange === 'Medium (1500-1800 l/min)', () => 
+            setRegulatorFilters({...regulatorFilters, airflowRange: 'Medium (1500-1800 l/min)'})
+          )}
+          {renderFilterButton('High', regulatorFilters.airflowRange === 'High (>1800 l/min)', () => 
+            setRegulatorFilters({...regulatorFilters, airflowRange: 'High (>1800 l/min)'})
+          )}
+        </View>
       </View>
       
-      <View style={styles.filterSection}>
-        <Text style={styles.filterTitle}>Dive Type</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.filterButtonsRow}>
-            {renderFilterButton('All', regulatorFilters.diveType === 'All', () => 
-              setRegulatorFilters({...regulatorFilters, diveType: 'All'})
-            )}
-            {renderFilterButton('Recreational', regulatorFilters.diveType === 'Recreational', () => 
-              setRegulatorFilters({...regulatorFilters, diveType: 'Recreational'})
-            )}
-            {renderFilterButton('Recreational / Tech', regulatorFilters.diveType === 'Recreational / Tech', () => 
-              setRegulatorFilters({...regulatorFilters, diveType: 'Recreational / Tech'})
-            )}
-            {renderFilterButton('Tech / Contaminated', regulatorFilters.diveType === 'Recreational / Tech / Contaminated', () => 
-              setRegulatorFilters({...regulatorFilters, diveType: 'Recreational / Tech / Contaminated'})
-            )}
-          </View>
-        </ScrollView>
+      <View style={styles.filterRow}>
+        <Text style={styles.filterTitle}>Dive Type:</Text>
+        <View style={styles.filterButtonsRow}>
+          {renderFilterButton('All', regulatorFilters.diveType === 'All', () => 
+            setRegulatorFilters({...regulatorFilters, diveType: 'All'})
+          )}
+          {renderFilterButton('Recreational', regulatorFilters.diveType === 'Recreational', () => 
+            setRegulatorFilters({...regulatorFilters, diveType: 'Recreational'})
+          )}
+          {renderFilterButton('Rec/Tech', regulatorFilters.diveType === 'Recreational / Tech', () => 
+            setRegulatorFilters({...regulatorFilters, diveType: 'Recreational / Tech'})
+          )}
+          {renderFilterButton('Tech', regulatorFilters.diveType === 'Recreational / Tech / Contaminated', () => 
+            setRegulatorFilters({...regulatorFilters, diveType: 'Recreational / Tech / Contaminated'})
+          )}
+        </View>
       </View>
     </View>
   );
@@ -519,13 +497,13 @@ const IntelligentSearchScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>Intelligent Product Search</Text>
+        <Text style={styles.headerTitle}>Function Filter</Text>
         <Text style={styles.headerSubtitle}>
           Filter products by their characteristics
         </Text>
       </View>
       
-      <ScrollView style={styles.scrollView}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.categorySelector}>
           <Text style={styles.categoryTitle}>Product Category:</Text>
           <View style={styles.categoryButtons}>
@@ -685,7 +663,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
   },
   headerContainer: {
     padding: 16,
@@ -699,17 +677,17 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   headerSubtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#666',
-    marginTop: 4,
+    marginTop: 2,
   },
   categorySelector: {
-    marginVertical: 12,
+    marginVertical: 8,
   },
   categoryTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   categoryButtons: {
     flexDirection: 'row',
@@ -717,8 +695,8 @@ const styles = StyleSheet.create({
   },
   categoryButton: {
     backgroundColor: '#f0f0f0',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     borderRadius: 8,
     flex: 1,
     marginHorizontal: 4,
@@ -734,12 +712,12 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   levelSelector: {
-    marginVertical: 12,
+    marginVertical: 8,
   },
   levelTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   levelButtons: {
     flexDirection: 'row',
@@ -748,7 +726,7 @@ const styles = StyleSheet.create({
   levelButton: {
     backgroundColor: '#f0f0f0',
     paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     borderRadius: 20,
     flex: 1,
     marginHorizontal: 4,
@@ -760,6 +738,7 @@ const styles = StyleSheet.create({
   levelButtonText: {
     color: '#333',
     fontWeight: '500',
+    fontSize: 13,
   },
   selectedLevelButtonText: {
     color: '#fff',
@@ -767,26 +746,29 @@ const styles = StyleSheet.create({
   filtersContainer: {
     marginVertical: 8,
   },
-  filterSection: {
-    marginBottom: 12,
+  filterRow: {
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+    paddingBottom: 6,
   },
   filterTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
+    fontWeight: '500',
+    marginBottom: 6,
     color: '#555',
   },
   filterButtonsRow: {
     flexDirection: 'row',
-    flexWrap: 'nowrap',
+    flexWrap: 'wrap',
   },
   filterButton: {
     backgroundColor: '#f8f8f8',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    marginRight: 8,
-    marginBottom: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    marginRight: 6,
+    marginBottom: 6,
     borderWidth: 1,
     borderColor: '#eee',
   },
@@ -795,7 +777,7 @@ const styles = StyleSheet.create({
     borderColor: '#0066cc',
   },
   filterButtonText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#555',
   },
   selectedFilterButtonText: {
@@ -805,41 +787,42 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: 16,
+    marginTop: 8,
+    marginBottom: 12,
   },
   resetButton: {
     backgroundColor: '#f0f0f0',
     borderRadius: 8,
-    padding: 12,
+    padding: 10,
     alignItems: 'center',
     flex: 1,
     marginRight: 8,
   },
   resetButtonText: {
     color: '#333',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '500',
   },
   searchButton: {
     backgroundColor: '#0066cc',
     borderRadius: 8,
-    padding: 12,
+    padding: 10,
     alignItems: 'center',
     flex: 2,
   },
   searchButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   resultsContainer: {
-    flex: 2,
-    paddingHorizontal: 16,
+    flex: 1,
+    paddingHorizontal: 12,
   },
   resultsTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    marginVertical: 12,
+    marginVertical: 8,
     color: '#333',
   },
   loadingContainer: {
@@ -868,7 +851,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f8f8',
     borderRadius: 8,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: '#eee',
   },
@@ -879,7 +862,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   resultName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
   },
@@ -891,7 +874,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#0066cc',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   viewDetailsText: {
     color: '#0066cc',

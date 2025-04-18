@@ -385,7 +385,7 @@ const ProductSelectionScreen = () => {
           style={styles.actionButton}
           onPress={handleIntelligentSearchPress}
         >
-          <Text style={styles.actionButtonText}>Intelligent Search</Text>
+          <Text style={styles.actionButtonText}>Function Filter</Text>
         </TouchableOpacity>
       </View>
 

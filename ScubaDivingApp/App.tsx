@@ -115,7 +115,7 @@ export default function App() {
         <Stack.Screen 
           name="IntelligentSearch" 
           component={IntelligentSearchScreen} 
-          options={{ title: 'Smart Search' }}
+          options={{ title: 'Function Filter' }}
         />
         <Stack.Screen 
           name="RealTimeComparison" 
