@@ -351,26 +351,6 @@ const ProductDetailsScreen = () => {
           </View>
         </View>
       )}
-      
-      {/* Navigation Buttons */}
-      <View style={styles.buttonsContainer}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('Comparison', { 
-            products: [product],
-            techDetails: techDetails ? [techDetails] : []
-          })}
-        >
-          <Text style={styles.buttonText}>Add to Comparison</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('RealTimeComparison')}
-        >
-          <Text style={styles.buttonText}>View All Prices</Text>
-        </TouchableOpacity>
-      </View>
     </ScrollView>
   );
 };
@@ -559,24 +539,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     flex: 1,
-    fontWeight: '500',
-  },
-  buttonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 15,
-    marginBottom: 20,
-  },
-  button: {
-    backgroundColor: '#0066cc',
-    padding: 12,
-    borderRadius: 5,
-    flex: 0.48,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
     fontWeight: '500',
   },
 });

@@ -32,7 +32,6 @@ const ComparisonScreen = () => {
   
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [experienceLevel, setExperienceLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('intermediate');
   
   // Service facade for simplifying API interactions
   const serviceFacade = ServiceFacade.getInstance();
@@ -92,7 +91,7 @@ const ComparisonScreen = () => {
   }
   
   // Calculate discounted prices using the Visitor pattern
-  const priceCalculator = new PriceCalculatorVisitor(experienceLevel);
+  const priceCalculator = new PriceCalculatorVisitor('intermediate');
   
   const getVisitableProduct = (product: any) => {
     // Create the appropriate visitable product based on type
@@ -103,7 +102,8 @@ const ComparisonScreen = () => {
           product.name,
           product.brand,
           product.price,
-          product.specifications
+          product.specifications,
+          product.link || ''
         );
       case 'bcd':
         return new VisitableBCDProduct(
@@ -111,7 +111,8 @@ const ComparisonScreen = () => {
           product.name,
           product.brand,
           product.price,
-          product.specifications
+          product.specifications,
+          product.link || ''
         );
       case 'fin':
         return new VisitableFinProduct(
@@ -119,7 +120,8 @@ const ComparisonScreen = () => {
           product.name,
           product.brand,
           product.price,
-          product.specifications
+          product.specifications,
+          product.link || ''
         );
       default:
         throw new Error(`Unknown product type: ${product.type}`);
@@ -142,63 +144,6 @@ const ComparisonScreen = () => {
           <Text style={styles.stepNumber}>3</Text>
         </View>
         <Text style={styles.stepText}>Compare specifications and pricing</Text>
-      </View>
-
-      {/* Experience level selector */}
-      <View style={styles.experienceSelector}>
-        <Text style={styles.sectionTitle}>Diver Experience Level:</Text>
-        <View style={styles.levelButtons}>
-          <TouchableOpacity 
-            style={[
-              styles.levelButton, 
-              experienceLevel === 'beginner' && styles.selectedLevelButton
-            ]}
-            onPress={() => setExperienceLevel('beginner')}
-          >
-            <Text 
-              style={[
-                styles.levelButtonText,
-                experienceLevel === 'beginner' && styles.selectedLevelButtonText
-              ]}
-            >
-              Beginner
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[
-              styles.levelButton, 
-              experienceLevel === 'intermediate' && styles.selectedLevelButton
-            ]}
-            onPress={() => setExperienceLevel('intermediate')}
-          >
-            <Text 
-              style={[
-                styles.levelButtonText,
-                experienceLevel === 'intermediate' && styles.selectedLevelButtonText
-              ]}
-            >
-              Intermediate
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[
-              styles.levelButton, 
-              experienceLevel === 'advanced' && styles.selectedLevelButton
-            ]}
-            onPress={() => setExperienceLevel('advanced')}
-          >
-            <Text 
-              style={[
-                styles.levelButtonText,
-                experienceLevel === 'advanced' && styles.selectedLevelButtonText
-              ]}
-            >
-              Advanced
-            </Text>
-          </TouchableOpacity>
-        </View>
       </View>
       
       <ScrollView horizontal={true} style={styles.scrollContainer}>
@@ -250,7 +195,6 @@ const ComparisonScreen = () => {
           <View style={styles.tableRow}>
             <View style={styles.tableCell}>
               <Text style={styles.cellLabel}>Your Price</Text>
-              <Text style={styles.cellSubLabel}>({experienceLevel} diver)</Text>
             </View>
             {products.map(product => {
               const visitableProduct = getVisitableProduct(product);
@@ -348,46 +292,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: '#666',
-  },
-  experienceSelector: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    color: '#333',
-  },
-  levelButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  levelButton: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    marginHorizontal: 4,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  selectedLevelButton: {
-    backgroundColor: '#e6f0ff',
-    borderColor: '#0066cc',
-  },
-  levelButtonText: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-  },
-  selectedLevelButtonText: {
-    color: '#0066cc',
-    fontWeight: 'bold',
   },
   scrollContainer: {
     flex: 1,

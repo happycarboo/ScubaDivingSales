@@ -60,7 +60,6 @@ const IntelligentSearchScreen = () => {
   const navigation = useNavigation<IntelligentSearchScreenNavigationProp>();
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<Product[]>([]);
-  const [selectedLevel, setSelectedLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('intermediate');
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory>('regulator');
   const [imagesLoading, setImagesLoading] = useState<Record<string, boolean>>({});
   
@@ -615,16 +614,6 @@ const IntelligentSearchScreen = () => {
 
       <Text style={styles.sectionTitle}>Filter Products</Text>
       <Text style={styles.sectionSubtitle}>Step 1: Understand your customer's needs</Text>
-
-      {/* Diver experience level selector */}
-      <View style={styles.filterSection}>
-        <Text style={styles.filterSectionTitle}>Diver Experience Level:</Text>
-        <View style={styles.optionsContainer}>
-          {renderFilterButton('Beginner', selectedLevel === 'beginner', () => setSelectedLevel('beginner'))}
-          {renderFilterButton('Intermediate', selectedLevel === 'intermediate', () => setSelectedLevel('intermediate'))}
-          {renderFilterButton('Advanced', selectedLevel === 'advanced', () => setSelectedLevel('advanced'))}
-        </View>
-      </View>
 
       {/* Product category selector */}
       <View style={styles.filterSection}>
