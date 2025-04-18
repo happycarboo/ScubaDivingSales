@@ -86,7 +86,7 @@ export default function App() {
     <NavigationContainer>
       <StatusBar style="auto" />
       <Stack.Navigator 
-        initialRouteName="ProductSelection"
+        initialRouteName="IntelligentSearch"
         screenOptions={{
           headerStyle: {
             backgroundColor: '#0066cc',
@@ -115,7 +115,7 @@ export default function App() {
         <Stack.Screen 
           name="IntelligentSearch" 
           component={IntelligentSearchScreen} 
-          options={{ title: 'Function Filter' }}
+          options={{ title: 'ScubaWarehouse Sales Assistant' }}
         />
         <Stack.Screen 
           name="RealTimeComparison" 

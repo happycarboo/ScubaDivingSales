@@ -8,7 +8,7 @@ import {
   Alert,
   TouchableOpacity 
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { ServiceFacade } from '../../patterns/facade/ServiceFacade';
 import { ProductFactory } from '../../patterns/factory/ProductFactory';
 import { 
@@ -19,17 +19,23 @@ import {
 } from '../../patterns/visitor/ProductVisitor';
 import { ComparisonScreenNavigationProp } from '../../types/navigation';
 
-// For demo purposes, we'll use a fixed set of products to compare
-const PRODUCTS_TO_COMPARE = ['1', '2', '3'];
+// For fallback if no products are passed
+const DEFAULT_PRODUCTS_TO_COMPARE = ['1', '2', '3'];
 
 const ComparisonScreen = () => {
   const navigation = useNavigation<ComparisonScreenNavigationProp>();
+  const route = useRoute<any>();
+  
+  // Get products from navigation params or use default IDs
+  const selectedProducts = route.params?.selectedProducts || [];
+  const hasSelectedProducts = selectedProducts.length > 0;
+  
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [experienceLevel, setExperienceLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('intermediate');
   
   // Service facade for simplifying API interactions
-  const serviceFacade = new ServiceFacade();
+  const serviceFacade = ServiceFacade.getInstance();
   // Product factory for creating the right product type
   const productFactory = new ProductFactory();
   
@@ -38,26 +44,43 @@ const ComparisonScreen = () => {
       try {
         setLoading(true);
         
-        // Fetch each product's details
-        const productPromises = PRODUCTS_TO_COMPARE.map(id => 
-          serviceFacade.getProductWithPriceComparison(id)
-        );
+        let productsToDisplay: any[] = [];
         
-        const productsWithPrices = await Promise.all(productPromises);
-        
-        // Extract just the product data
-        const productsData = productsWithPrices.map(item => item.product);
-        setProducts(productsData);
+        if (hasSelectedProducts) {
+          // If we have selected products, use them directly
+          productsToDisplay = selectedProducts;
+          setProducts(productsToDisplay);
+          setLoading(false);
+        } else {
+          // Otherwise fetch default products
+          const productPromises = DEFAULT_PRODUCTS_TO_COMPARE.map(id => 
+            serviceFacade.getProductWithPriceComparison(id)
+          );
+          
+          const productsWithPrices = await Promise.all(productPromises);
+          
+          // Extract just the product data
+          productsToDisplay = productsWithPrices.map(item => item.product);
+          setProducts(productsToDisplay);
+          setLoading(false);
+        }
       } catch (error) {
         Alert.alert('Error', 'Failed to fetch products for comparison');
         console.error(error);
-      } finally {
         setLoading(false);
       }
     };
     
     fetchProducts();
-  }, []);
+  }, [hasSelectedProducts, selectedProducts]);
+  
+  const handleViewDetails = (productId: string) => {
+    navigation.navigate('ProductDetails', { productId });
+  };
+  
+  const handleBackToSelection = () => {
+    navigation.goBack();
+  };
   
   if (loading) {
     return (
@@ -106,13 +129,22 @@ const ComparisonScreen = () => {
   // Get all specification keys across all products
   const allSpecKeys = new Set<string>();
   products.forEach(product => {
-    Object.keys(product.specifications).forEach(key => {
+    Object.keys(product.specifications || {}).forEach(key => {
       allSpecKeys.add(key);
     });
   });
   
   return (
     <View style={styles.container}>
+      {/* Step indicator */}
+      <View style={styles.stepIndicator}>
+        <View style={styles.stepCircle}>
+          <Text style={styles.stepNumber}>3</Text>
+        </View>
+        <Text style={styles.stepText}>Compare specifications and pricing</Text>
+      </View>
+
+      {/* Experience level selector */}
       <View style={styles.experienceSelector}>
         <Text style={styles.sectionTitle}>Diver Experience Level:</Text>
         <View style={styles.levelButtons}>
@@ -181,9 +213,10 @@ const ComparisonScreen = () => {
                 <Text style={styles.productName}>{product.name}</Text>
                 <Text style={styles.productBrand}>{product.brand}</Text>
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('ProductDetails', { productId: product.id })}
+                  style={styles.viewDetailsButton}
+                  onPress={() => handleViewDetails(product.id)}
                 >
-                  <Text style={styles.viewDetailsLink}>View Details</Text>
+                  <Text style={styles.viewDetailsButtonText}>View Details</Text>
                 </TouchableOpacity>
               </View>
             ))}
@@ -250,10 +283,8 @@ const ComparisonScreen = () => {
               {products.map(product => (
                 <View key={product.id} style={styles.tableCell}>
                   <Text style={styles.cellValue}>
-                    {product.specifications[specKey] !== undefined 
-                      ? (Array.isArray(product.specifications[specKey]) 
-                          ? product.specifications[specKey].join(', ')
-                          : String(product.specifications[specKey]))
+                    {product.specifications && specKey in product.specifications 
+                      ? String(product.specifications[specKey])
                       : '-'}
                   </Text>
                 </View>
@@ -262,6 +293,15 @@ const ComparisonScreen = () => {
           ))}
         </View>
       </ScrollView>
+      
+      <View style={styles.bottomActions}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={handleBackToSelection}
+        >
+          <Text style={styles.backButtonText}>Back to Selection</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -269,7 +309,34 @@ const ComparisonScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f5f7fa',
+  },
+  stepIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#fff',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e5e5',
+  },
+  stepCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#0066cc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  stepNumber: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  stepText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
   },
   loadingContainer: {
     flex: 1,
@@ -278,62 +345,80 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   loadingText: {
-    marginTop: 16,
+    marginTop: 10,
     fontSize: 16,
     color: '#666',
   },
-  scrollContainer: {
-    flex: 1,
+  experienceSelector: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e5e5',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 12,
-  },
-  experienceSelector: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    color: '#333',
   },
   levelButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   levelButton: {
-    backgroundColor: '#f0f0f0',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
     flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
     marginHorizontal: 4,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
   selectedLevelButton: {
-    backgroundColor: '#0066cc',
+    backgroundColor: '#e6f0ff',
+    borderColor: '#0066cc',
   },
   levelButtonText: {
-    color: '#333',
+    fontSize: 14,
+    color: '#666',
     fontWeight: '500',
   },
   selectedLevelButtonText: {
-    color: '#fff',
+    color: '#0066cc',
+    fontWeight: 'bold',
+  },
+  scrollContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
   },
   comparisonTable: {
-    padding: 16,
+    backgroundColor: '#fff',
+    marginHorizontal: 0,
+    marginVertical: 0,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#e5e5e5',
   },
   tableHeaderCell: {
-    padding: 16,
     width: 180,
-    minHeight: 100,
+    padding: 16,
     justifyContent: 'center',
-    backgroundColor: '#f8f8f8',
+    backgroundColor: '#f5f7fa',
     borderRightWidth: 1,
-    borderRightColor: '#eee',
+    borderRightColor: '#e5e5e5',
+  },
+  tableCell: {
+    width: 180,
+    padding: 16,
+    justifyContent: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#e5e5e5',
   },
   tableHeaderText: {
     fontSize: 16,
@@ -351,44 +436,64 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 8,
   },
+  viewDetailsButton: {
+    backgroundColor: '#e6f0ff',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+  },
+  viewDetailsButtonText: {
+    color: '#0066cc',
+    fontWeight: '500',
+    fontSize: 14,
+  },
   viewDetailsLink: {
     color: '#0066cc',
-    fontSize: 14,
     marginTop: 4,
-    textDecorationLine: 'underline',
-  },
-  tableCell: {
-    padding: 16,
-    width: 180,
-    minHeight: 70,
-    justifyContent: 'center',
-    borderRightWidth: 1,
-    borderRightColor: '#eee',
+    fontSize: 14,
   },
   cellLabel: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: '500',
     color: '#333',
   },
   cellSubLabel: {
     fontSize: 12,
-    fontStyle: 'italic',
     color: '#666',
-    marginTop: 4,
+    fontStyle: 'italic',
   },
   cellValue: {
     fontSize: 14,
     color: '#444',
-    marginTop: 4,
   },
   discountPrice: {
-    color: '#cc0000',
+    color: '#28a745',
     fontWeight: 'bold',
   },
   discountLabel: {
     fontSize: 12,
-    color: '#cc0000',
+    color: '#28a745',
     marginTop: 2,
+  },
+  bottomActions: {
+    padding: 16,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#e5e5e5',
+  },
+  backButton: {
+    paddingVertical: 12,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    color: '#444',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
 
