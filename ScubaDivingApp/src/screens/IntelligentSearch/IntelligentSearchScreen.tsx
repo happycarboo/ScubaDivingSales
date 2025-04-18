@@ -6,7 +6,8 @@ import {
   TouchableOpacity, 
   FlatList,
   ActivityIndicator,
-  ScrollView
+  ScrollView,
+  Image
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { IntelligentSearchScreenNavigationProp } from '../../types/navigation';
@@ -60,6 +61,7 @@ const IntelligentSearchScreen = () => {
   const [results, setResults] = useState<Product[]>([]);
   const [selectedLevel, setSelectedLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('intermediate');
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory>('regulator');
+  const [imagesLoading, setImagesLoading] = useState<Record<string, boolean>>({});
   
   // BCD filters
   const [bcdFilters, setBcdFilters] = useState<BCDFilters>({
@@ -274,12 +276,35 @@ const IntelligentSearchScreen = () => {
       style={styles.resultCard}
       onPress={() => navigation.navigate('ProductDetails', { productId: item.id })}
     >
-      <View style={styles.resultHeader}>
-        <Text style={styles.resultName}>{item.name}</Text>
-        <Text style={styles.resultBrand}>{item.brand}</Text>
+      <View style={styles.resultLayout}>
+        {/* Product Thumbnail */}
+        <View style={styles.thumbnailContainer}>
+          {imagesLoading[item.id] ? (
+            <ActivityIndicator size="small" color="#0066cc" style={styles.thumbnailLoader} />
+          ) : item.imageUrl ? (
+            <Image
+              source={{ uri: item.imageUrl }}
+              style={styles.thumbnail}
+              resizeMode="contain"
+            />
+          ) : (
+            <View style={styles.placeholderThumbnail}>
+              <Text style={styles.placeholderText}>{item.brand.charAt(0)}{item.name.charAt(0)}</Text>
+            </View>
+          )}
+        </View>
+        
+        <View style={styles.productInfo}>
+          <View style={styles.resultHeader}>
+            <Text style={styles.resultName} numberOfLines={1}>{item.name}</Text>
+            <Text style={styles.resultBrand}>{item.brand}</Text>
+          </View>
+          <Text style={styles.resultPrice}>${item.price.toFixed(2)}</Text>
+          <TouchableOpacity style={styles.detailsButton}>
+            <Text style={styles.viewDetailsText}>View details</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-      <Text style={styles.resultPrice}>${item.price.toFixed(2)}</Text>
-      <Text style={styles.viewDetailsText}>Tap to view details</Text>
     </TouchableOpacity>
   );
   
@@ -494,6 +519,53 @@ const IntelligentSearchScreen = () => {
     </View>
   );
   
+  // Update useEffect to load product images
+  useEffect(() => {
+    const loadProductImages = async () => {
+      if (results.length === 0) return;
+      
+      try {
+        // Create a tracking object for image loading states
+        const loadingStates: Record<string, boolean> = {};
+        results.forEach(product => {
+          loadingStates[product.id] = true;
+        });
+        setImagesLoading(loadingStates);
+        
+        // Load images for each product
+        const updatedProducts = await Promise.all(
+          results.map(async product => {
+            try {
+              // Try to get the image
+              const imageUrl = await serviceFacade.getProductImageUri(product.id, product.link);
+              loadingStates[product.id] = false;
+              setImagesLoading({...loadingStates});
+              
+              // Return a new product object with the updated imageUrl
+              return {
+                ...product,
+                imageUrl: imageUrl || undefined // Convert null to undefined for compatibility
+              };
+            } catch (error) {
+              console.error(`Error loading image for product ${product.id}:`, error);
+              loadingStates[product.id] = false;
+              setImagesLoading({...loadingStates});
+              return product;
+            }
+          })
+        );
+        
+        // Update products with image URLs
+        setResults(updatedProducts as Product[]);
+        
+      } catch (error) {
+        console.error('Error loading product images:', error);
+      }
+    };
+
+    loadProductImages();
+  }, [results.length]);
+
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
@@ -605,9 +677,7 @@ const IntelligentSearchScreen = () => {
           </View>
         </View>
         
-        {/* Render filters based on selected category */}
-        {selectedCategory === 'bcd' ? renderBCDFilters() : renderRegulatorFilters()}
-        
+        {/* Move buttons to the top for better visibility */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
             style={styles.resetButton}
@@ -624,6 +694,10 @@ const IntelligentSearchScreen = () => {
             <Text style={styles.searchButtonText}>Find Products</Text>
           </TouchableOpacity>
         </View>
+        
+        {/* Render filters based on selected category */}
+        {selectedCategory === 'bcd' ? renderBCDFilters() : renderRegulatorFilters()}
+        
       </ScrollView>
       
       <View style={styles.resultsContainer}>
@@ -788,7 +862,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 8,
-    marginBottom: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 10,
+    backgroundColor: '#f9f9f9',
   },
   resetButton: {
     backgroundColor: '#f0f0f0',
@@ -850,16 +929,51 @@ const styles = StyleSheet.create({
   resultCard: {
     backgroundColor: '#f8f8f8',
     borderRadius: 8,
-    padding: 16,
+    padding: 12,
     marginBottom: 10,
     borderWidth: 1,
     borderColor: '#eee',
+    overflow: 'hidden',
+  },
+  resultLayout: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  thumbnailContainer: {
+    width: 80,
+    height: 80,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    marginRight: 12,
+  },
+  thumbnail: {
+    width: '100%',
+    height: '100%',
+  },
+  thumbnailLoader: {
+    position: 'absolute',
+  },
+  placeholderThumbnail: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#e0e0e0',
+  },
+  placeholderText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#888',
+  },
+  productInfo: {
+    flex: 1,
   },
   resultHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    flexDirection: 'column',
+    marginBottom: 4,
   },
   resultName: {
     fontSize: 16,
@@ -874,13 +988,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#0066cc',
-    marginBottom: 10,
+    marginBottom: 4,
+  },
+  detailsButton: {
+    alignSelf: 'flex-start',
   },
   viewDetailsText: {
     color: '#0066cc',
     fontSize: 14,
-    marginTop: 8,
-    textAlign: 'center',
   },
 });
 
