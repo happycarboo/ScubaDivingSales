@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -9,12 +9,19 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
-  Image
+  Image,
+  AppState,
+  AppStateStatus,
+  InteractionManager,
+  Modal,
+  SafeAreaView,
+  Button
 } from 'react-native';
-import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute, useIsFocused } from '@react-navigation/native';
 import { ProductFactory } from '../../patterns/factory/ProductFactory';
 import { ServiceFacade } from '../../patterns/facade/ServiceFacade';
 import { ProductSelectionScreenNavigationProp } from '../../types/navigation';
+import { WebView } from 'react-native-webview';
 
 // Types
 type ProductItem = {
@@ -32,6 +39,7 @@ type ProductItem = {
 const ProductSelectionScreen = () => {
   const navigation = useNavigation<ProductSelectionScreenNavigationProp>();
   const route = useRoute<any>();
+  const isFocused = useIsFocused();
   
   // Check if we received filtered products from previous screen
   const filteredProductsFromNav = route.params?.filteredProducts;
@@ -43,43 +51,70 @@ const ProductSelectionScreen = () => {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [imagesLoading, setImagesLoading] = useState<Record<string, boolean>>({});
   const [cachedImages, setCachedImages] = useState<Record<string, string>>({});
+  
+  // State for the WebView
+  const [webViewVisible, setWebViewVisible] = useState(false);
+  const [webViewUrl, setWebViewUrl] = useState('');
+  const [webViewLoading, setWebViewLoading] = useState(false);
 
   // Create instances of our patterns
   const productFactory = new ProductFactory();
   // Use ServiceFacade singleton
   const serviceFacade = ServiceFacade.getInstance();
 
-  useEffect(() => {
-    // Fetch products only if we don't have filtered products from navigation
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        
-        if (filteredProductsFromNav) {
-          console.log('Using filtered products from navigation:', filteredProductsFromNav.length);
-          setProducts(filteredProductsFromNav);
-          setFilteredProducts(filteredProductsFromNav);
-        } else {
-          console.log('Fetching products from Firebase...');
-          const productsData = await serviceFacade.getProductsWithFilters({});
-          console.log('Products fetched:', productsData.length);
-          setProducts(productsData);
-          setFilteredProducts(productsData);
-        }
-      } catch (error) {
-        console.error('Error fetching products:', error);
-        Alert.alert(
-          'Error',
-          'Failed to fetch products. Please check your connection and try again.',
-          [{ text: 'OK' }]
-        );
-      } finally {
-        setLoading(false);
+  // Focus effect to ensure the screen always loads properly when it gains focus
+  useFocusEffect(
+    useCallback(() => {
+      console.log('Screen focused - ensuring data is loaded');
+      
+      // If screen is blank or products not loaded, force a reload
+      if (filteredProducts.length === 0 && !loading) {
+        console.log('No products found on focus - reloading data');
+        loadInitialData();
       }
-    };
+      
+      return () => {
+        // Clean up any resources on unfocus
+      };
+    }, [isFocused, filteredProducts.length, loading])
+  );
 
-    fetchProducts();
+  // Initial data loading
+  useEffect(() => {
+    loadInitialData();
   }, [filteredProductsFromNav]);
+
+  // Load initial data function
+  const loadInitialData = async () => {
+    try {
+      setLoading(true);
+      
+      if (filteredProductsFromNav) {
+        console.log('Using filtered products from navigation:', filteredProductsFromNav.length);
+        setProducts(filteredProductsFromNav);
+        setFilteredProducts(filteredProductsFromNav);
+      } else {
+        console.log('Fetching products from Firebase...');
+        const productsData = await serviceFacade.getProductsWithFilters({});
+        console.log('Products fetched:', productsData.length);
+        setProducts(productsData);
+        setFilteredProducts(productsData);
+      }
+      
+      // Load cached images
+      const images = await serviceFacade.getCachedProductImages();
+      setCachedImages(images);
+    } catch (error) {
+      console.error('Error loading initial data:', error);
+      Alert.alert(
+        'Error',
+        'Failed to fetch products. Please check your connection and try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Add a useFocusEffect to refresh cached images when returning to the screen
   useFocusEffect(
@@ -114,7 +149,7 @@ const ProductSelectionScreen = () => {
       };
       
       refreshCachedImages();
-    }, [])
+    }, [isFocused])
   );
 
   // Add image loading functionality
@@ -268,6 +303,18 @@ const ProductSelectionScreen = () => {
     navigation.navigate('IntelligentSearch');
   };
 
+  // WebView approach for external links
+  const handleOpenLink = (product: ProductItem) => {
+    if (product.link) {
+      console.log('Opening URL in WebView:', product.link);
+      setWebViewUrl(product.link);
+      setWebViewVisible(true);
+      setWebViewLoading(true);
+    } else {
+      Alert.alert('No link available', 'This product does not have an external link.');
+    }
+  };
+
   // Render a product card
   const renderProductCard = ({ item }: { item: ProductItem }) => {
     const isSelected = selectedProducts.includes(item.id);
@@ -320,6 +367,13 @@ const ProductSelectionScreen = () => {
             >
               <Text style={styles.detailsButtonText}>View Details</Text>
             </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.redirectButton}
+              onPress={() => handleOpenLink(item)}
+            >
+              <Text style={styles.redirectButtonText}>↗</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </TouchableOpacity>
@@ -371,6 +425,7 @@ const ProductSelectionScreen = () => {
           contentContainerStyle={styles.productList}
           numColumns={2}
           showsVerticalScrollIndicator={false}
+          extraData={[selectedProducts, cachedImages]}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
@@ -403,6 +458,41 @@ const ProductSelectionScreen = () => {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* WebView for showing external links */}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={webViewVisible}
+        onRequestClose={() => setWebViewVisible(false)}
+      >
+        <SafeAreaView style={styles.webViewContainer}>
+          <View style={styles.webViewHeader}>
+            <TouchableOpacity 
+              style={styles.webViewCloseButton}
+              onPress={() => setWebViewVisible(false)}
+            >
+              <Text style={styles.webViewCloseText}>Close</Text>
+            </TouchableOpacity>
+            <Text style={styles.webViewTitle} numberOfLines={1}>
+              {webViewUrl}
+            </Text>
+          </View>
+          
+          {webViewLoading && (
+            <View style={styles.webViewLoading}>
+              <ActivityIndicator size="large" color="#0066cc" />
+            </View>
+          )}
+          
+          <WebView
+            source={{ uri: webViewUrl }}
+            style={styles.webView}
+            onLoadStart={() => setWebViewLoading(true)}
+            onLoadEnd={() => setWebViewLoading(false)}
+          />
+        </SafeAreaView>
+      </Modal>
     </View>
   );
 };
@@ -412,6 +502,48 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f7fa',
   },
+  // WebView styles
+  webViewContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  webViewHeader: {
+    height: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  webViewCloseButton: {
+    padding: 10,
+  },
+  webViewCloseText: {
+    color: '#0066cc',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  webViewTitle: {
+    flex: 1,
+    marginHorizontal: 10,
+    fontSize: 16,
+    color: '#333',
+  },
+  webView: {
+    flex: 1,
+  },
+  webViewLoading: {
+    position: 'absolute',
+    top: 50,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    zIndex: 1,
+  },
+  // Original styles
   stepIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -571,6 +703,7 @@ const styles = StyleSheet.create({
   },
   buttonRow: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
   detailsButton: {
     paddingVertical: 6,
@@ -578,11 +711,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#e6f0ff',
     borderRadius: 4,
     alignSelf: 'flex-start',
+    marginRight: 8,
   },
   detailsButtonText: {
     color: '#0066cc',
     fontWeight: '500',
     fontSize: 14,
+  },
+  redirectButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  redirectButtonText: {
+    fontSize: 16,
+    color: '#0066cc',
+    fontWeight: 'bold',
   },
   loadingContainer: {
     flex: 1,
