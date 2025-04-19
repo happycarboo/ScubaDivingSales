@@ -25,28 +25,31 @@ const filterRealCompetitors = (prices: Record<string, any> | null) => {
   return filteredPrices;
 };
 
-// Add this dummy data for fallback
+// Add this dummy data for fallback with separate timing properties for each competitor
 const DUMMY_COMPETITOR_PRICES = {
   'Lazada': {
     competitor: 'Lazada',
     price: 1428.90,
     sourceUrl: 'https://lazada.sg',
     lastUpdated: new Date(),
-    isLive: true
+    isLive: true,
+    loadTime: 5500, // Medium speed - 5.5 seconds
   },
   'Shopee': {
     competitor: 'Shopee',
     price: 1234.05,
     sourceUrl: 'https://shopee.sg',
     lastUpdated: new Date(),
-    isLive: true
+    isLive: true,
+    loadTime: 10000, // Slowest - 10 seconds
   },
   'Deep Blue Dive': {
     competitor: 'Deep Blue Dive',
     price: 1363.95,
     sourceUrl: 'https://deepbluedive.com',
     lastUpdated: new Date(),
-    isLive: true
+    isLive: true,
+    loadTime: 3000, // Fastest - 3 seconds
   }
 };
 
@@ -71,6 +74,9 @@ const ProductDetailsScreen = () => {
   // Add a timeout ref for fetch operations
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
+  // Add a state to track individually loaded prices
+  const [loadedPrices, setLoadedPrices] = useState<Record<string, CompetitorPrice>>({});
+  
   const serviceFacade = ServiceFacade.getInstance();
 
   useEffect(() => {
@@ -88,9 +94,9 @@ const ProductDetailsScreen = () => {
       } finally {
         setLoading(false);
         
-        // Show dummy prices directly after a short delay without animation
+        // Initial prices load after a product loads
         setTimeout(() => {
-          setCompetitorPrices(DUMMY_COMPETITOR_PRICES);
+          fetchCompetitorPrices();
         }, 800);
       }
     };
@@ -221,18 +227,46 @@ const ProductDetailsScreen = () => {
     }
   };
 
-  // Complete replacement for the fetchCompetitorPrices function - guaranteed to finish
+  // Updated fetchCompetitorPrices function to load prices at different times
   const fetchCompetitorPrices = async () => {
-    // Clear any previous prices to show fresh loading state
-    setCompetitorPrices(null);
+    // Clear previously loaded prices
+    setLoadedPrices({});
     setPricesLoading(true);
     
-    // Simple timeout to simulate network request
+    // Randomize the load times slightly to make it more realistic
+    const getRandomizedTime = (baseTime: number) => {
+      const variation = baseTime * 0.2; // 20% variation
+      return baseTime + (Math.random() * variation - variation/2);
+    };
+    
+    // Schedule each competitor price to load at different times
+    Object.entries(DUMMY_COMPETITOR_PRICES).forEach(([competitor, data]) => {
+      const loadTime = getRandomizedTime(data.loadTime);
+      
+      setTimeout(() => {
+        // Add this price to the loaded prices
+        setLoadedPrices(prev => ({
+          ...prev,
+          [competitor]: data
+        }));
+        
+        // If all prices are loaded, set pricesLoading to false
+        const allCompetitors = Object.keys(DUMMY_COMPETITOR_PRICES).length;
+        const loadedCompetitors = Object.keys({
+          ...loadedPrices, 
+          [competitor]: data
+        }).length;
+        
+        if (loadedCompetitors >= allCompetitors) {
+          setPricesLoading(false);
+        }
+      }, loadTime);
+    });
+    
+    // Set a fallback timeout to ensure we don't get stuck loading forever
     setTimeout(() => {
-      // Set dummy data after delay
-      setCompetitorPrices(DUMMY_COMPETITOR_PRICES);
       setPricesLoading(false);
-    }, 2000);
+    }, 5000); // 5 seconds max loading time
   };
 
   const formatDetails = (details: any) => {
@@ -288,7 +322,7 @@ const ProductDetailsScreen = () => {
         <Text style={styles.productPrice}>${product.price.toFixed(2)}</Text>
       </View>
       
-      {/* Simplified Competitor Price Section */}
+      {/* Competitor Price Section */}
       <View style={styles.sectionContainer}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Competitor Prices</Text>
@@ -303,36 +337,41 @@ const ProductDetailsScreen = () => {
           </TouchableOpacity>
         </View>
         
-        {pricesLoading ? (
-          <View style={styles.priceLoadingContainer}>
-            <ActivityIndicator size="small" color="#0066cc" />
-            <Text style={styles.priceLoadingText}>
-              Fetching current prices...
-            </Text>
-          </View>
-        ) : competitorPrices && Object.keys(competitorPrices).length > 0 ? (
-          <View style={styles.pricesContainer}>
-            {Object.entries(competitorPrices).map(([competitor, data]) => (
+        <View style={styles.pricesContainer}>
+          {/* Show the competitors in order */}
+          {Object.keys(DUMMY_COMPETITOR_PRICES).map((competitor) => {
+            const data = loadedPrices[competitor];
+            
+            // If the price hasn't loaded yet but we're still loading prices
+            const isLoading = !data && pricesLoading;
+            
+            return (
               <View key={competitor} style={styles.priceRow}>
                 <Text style={styles.competitorName}>{competitor}</Text>
-                <Text 
-                  style={[
-                    styles.competitorPrice, 
-                    data.price < product.price ? styles.betterPrice : null
-                  ]}
-                >
-                  ${data.price.toFixed(2)}
-                  {data.price < product.price && ' ⚠️'}
-                </Text>
-                {!data.isLive && (
-                  <Text style={styles.outdatedPrice}>
-                    Last updated: {data.lastUpdated.toLocaleDateString()}
+                {isLoading ? (
+                  <View style={styles.loadingPriceContainer}>
+                    <ActivityIndicator size="small" color="#0066cc" />
+                    <Text style={styles.loadingPriceText}>Loading...</Text>
+                  </View>
+                ) : data ? (
+                  <Text 
+                    style={[
+                      styles.competitorPrice, 
+                      data.price < (product?.price || 0) ? styles.betterPrice : null
+                    ]}
+                  >
+                    ${data.price.toFixed(2)}
+                    {data.price < (product?.price || 0) && ' ⚠️'}
                   </Text>
+                ) : (
+                  <Text style={styles.noPriceText}>Not available</Text>
                 )}
               </View>
-            ))}
-          </View>
-        ) : (
+            );
+          })}
+        </View>
+        
+        {Object.keys(loadedPrices).length === 0 && !pricesLoading && (
           <Text style={styles.noPricesText}>No competitor prices available. Tap Refresh to fetch prices.</Text>
         )}
       </View>
@@ -468,19 +507,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  priceLoadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 10,
-    height: 60, // Set fixed height to avoid layout shifts
-  },
-  priceLoadingText: {
-    marginLeft: 10,
-    color: '#666',
-    fontSize: 16,
-    fontWeight: '500',
-  },
   pricesContainer: {
     marginTop: 5,
     overflow: 'hidden', // Ensure animations don't overflow container
@@ -540,6 +566,19 @@ const styles = StyleSheet.create({
     color: '#333',
     flex: 1,
     fontWeight: '500',
+  },
+  loadingPriceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  loadingPriceText: {
+    marginLeft: 8,
+    color: '#666',
+    fontSize: 14,
+  },
+  noPriceText: {
+    color: '#999',
+    fontStyle: 'italic',
   },
 });
 
