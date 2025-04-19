@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Alternative Visitor Pattern Examples for ScubaDivingApp</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="alternative-visitor-pattern-examples-for-scubadivingapp">Alternative Visitor Pattern Examples for ScubaDivingApp</h1>
+<h2 id="overview-of-visitor-pattern">Overview of Visitor Pattern</h2>
+<p>The Visitor design pattern separates algorithms from the objects they operate on, allowing new operations to be added to existing object structures without modifying them. In the ScubaDivingApp, while the current implementation focuses on price calculation and recommendations, the pattern can be extended with several other powerful applications.</p>
+<h2 id="core-pattern-structure-same-across-all-applications">Core Pattern Structure (Same Across All Applications)</h2>
+<p>The foundation of the Visitor pattern remains consistent:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// Visitor interface</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">ProductVisitor</span> {
+  <span class="hljs-title function_">visitRegulator</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">RegulatorProduct</span>): <span class="hljs-built_in">any</span>;
+  <span class="hljs-title function_">visitBCD</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">BCDProduct</span>): <span class="hljs-built_in">any</span>;
+  <span class="hljs-title function_">visitFin</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">FinProduct</span>): <span class="hljs-built_in">any</span>;
+}
+
+<span class="hljs-comment">// Visitable interface</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">VisitableProduct</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Product</span> {
+  <span class="hljs-title function_">accept</span>(<span class="hljs-attr">visitor</span>: <span class="hljs-title class_">ProductVisitor</span>): <span class="hljs-built_in">any</span>;
+}
+
+<span class="hljs-comment">// Concrete visitable products</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">VisitableRegulatorProduct</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_ inherited__">RegulatorProduct</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">VisitableProduct</span> {
+  <span class="hljs-title function_">accept</span>(<span class="hljs-attr">visitor</span>: <span class="hljs-title class_">ProductVisitor</span>): <span class="hljs-built_in">any</span> {
+    <span class="hljs-keyword">return</span> visitor.<span class="hljs-title function_">visitRegulator</span>(<span class="hljs-variable language_">this</span>);
+  }
+}
+<span class="hljs-comment">// ... similarly for BCD and Fin products</span>
+</code></pre>
+<h2 id="alternative-visitor-implementations">Alternative Visitor Implementations</h2>
+<h3 id="1-technical-specifications-formatter-visitor">1. Technical Specifications Formatter Visitor</h3>
+<p>A visitor that formats technical specifications differently for each product type, creating user-friendly displays:</p>
+<pre><code class="language-typescript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TechnicalSpecsFormatterVisitor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">ProductVisitor</span> {
+  <span class="hljs-title function_">visitRegulator</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">RegulatorProduct</span>): <span class="hljs-built_in">string</span>[] {
+    <span class="hljs-keyword">const</span> specs = [];
+    
+    <span class="hljs-comment">// Format regulator-specific specs</span>
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">specifications</span>.<span class="hljs-property">temperature</span>) {
+      specs.<span class="hljs-title function_">push</span>(<span class="hljs-string">`Water Temperature: <span class="hljs-subst">${product.specifications.temperature}</span>`</span>);
+    }
+    
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">specifications</span>.<span class="hljs-property">high_pressure_port</span>) {
+      specs.<span class="hljs-title function_">push</span>(<span class="hljs-string">`HP Ports: <span class="hljs-subst">${product.specifications.high_pressure_port}</span>`</span>);
+    }
+    
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">specifications</span>.<span class="hljs-property">low_pressure_port</span>) {
+      specs.<span class="hljs-title function_">push</span>(<span class="hljs-string">`LP Ports: <span class="hljs-subst">${product.specifications.low_pressure_port}</span>`</span>);
+    }
+    
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">specifications</span>.<span class="hljs-property">adjustable_airflow</span>) {
+      specs.<span class="hljs-title function_">push</span>(<span class="hljs-string">`Adjustable Airflow: <span class="hljs-subst">${product.specifications.adjustable_airflow}</span>`</span>);
+    }
+    
+    <span class="hljs-keyword">return</span> specs;
+  }
+  
+  <span class="hljs-title function_">visitBCD</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">BCDProduct</span>): <span class="hljs-built_in">string</span>[] {
+    <span class="hljs-keyword">const</span> specs = [];
+    
+    <span class="hljs-comment">// Format BCD-specific specs</span>
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">specifications</span>.<span class="hljs-property">type</span>) {
+      specs.<span class="hljs-title function_">push</span>(<span class="hljs-string">`Style: <span class="hljs-subst">${product.specifications.<span class="hljs-keyword">type</span>}</span>`</span>);
+    }
+    
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">specifications</span>.<span class="hljs-property">weight_pocket</span>) {
+      specs.<span class="hljs-title function_">push</span>(<span class="hljs-string">`Weight Pockets: <span class="hljs-subst">${product.specifications.weight_pocket}</span>`</span>);
+    }
+    
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">specifications</span>.<span class="hljs-property">weight_kg</span>) {
+      specs.<span class="hljs-title function_">push</span>(<span class="hljs-string">`Weight: <span class="hljs-subst">${product.specifications.weight_kg}</span> kg`</span>);
+    }
+    
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">specifications</span>.<span class="hljs-property">lift_capacity_base_on_largest_size_kg</span>) {
+      specs.<span class="hljs-title function_">push</span>(<span class="hljs-string">`Lift Capacity: <span class="hljs-subst">${product.specifications.lift_capacity_base_on_largest_size_kg}</span> kg`</span>);
+    }
+    
+    <span class="hljs-keyword">return</span> specs;
+  }
+  
+  <span class="hljs-title function_">visitFin</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">FinProduct</span>): <span class="hljs-built_in">string</span>[] {
+    <span class="hljs-keyword">const</span> specs = [];
+    
+    <span class="hljs-comment">// Format fin-specific specs</span>
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">specifications</span>.<span class="hljs-property">material</span>) {
+      specs.<span class="hljs-title function_">push</span>(<span class="hljs-string">`Material: <span class="hljs-subst">${product.specifications.material}</span>`</span>);
+    }
+    
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">specifications</span>.<span class="hljs-property">style</span>) {
+      specs.<span class="hljs-title function_">push</span>(<span class="hljs-string">`Style: <span class="hljs-subst">${product.specifications.style === <span class="hljs-string">&#x27;open&#x27;</span> ? <span class="hljs-string">&#x27;Open Heel&#x27;</span> : <span class="hljs-string">&#x27;Full Foot&#x27;</span>}</span>`</span>);
+    }
+    
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">specifications</span>.<span class="hljs-property">stiffness</span>) {
+      specs.<span class="hljs-title function_">push</span>(<span class="hljs-string">`Stiffness: <span class="hljs-subst">${product.specifications.stiffness}</span>`</span>);
+    }
+    
+    <span class="hljs-keyword">return</span> specs;
+  }
+}
+</code></pre>
+<h3 id="2-maintenance-schedule-visitor">2. Maintenance Schedule Visitor</h3>
+<p>A visitor that generates maintenance schedules based on product type and characteristics:</p>
+<pre><code class="language-typescript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MaintenanceScheduleVisitor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">ProductVisitor</span> {
+  <span class="hljs-title function_">visitRegulator</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">RegulatorProduct</span>): <span class="hljs-title class_">MaintenanceSchedule</span> {
+    <span class="hljs-comment">// Different schedules based on regulator characteristics</span>
+    <span class="hljs-keyword">const</span> isForColdWater = product.<span class="hljs-property">specifications</span>.<span class="hljs-property">temperature</span> === <span class="hljs-string">&#x27;Cold water&#x27;</span>;
+    <span class="hljs-keyword">const</span> diveFrequency = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">getDiveFrequency</span>();
+    
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">annualService</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">serviceIntervalMonths</span>: isForColdWater ? <span class="hljs-number">6</span> : <span class="hljs-number">12</span>,
+      <span class="hljs-attr">preDiveChecks</span>: [
+        <span class="hljs-string">&#x27;Check mouthpiece for tears&#x27;</span>,
+        <span class="hljs-string">&#x27;Test purge button&#x27;</span>,
+        <span class="hljs-string">&#x27;Check for leaks when pressurized&#x27;</span>,
+        <span class="hljs-string">&#x27;Ensure second stage breathes smoothly&#x27;</span>
+      ],
+      <span class="hljs-attr">postDiveActions</span>: [
+        <span class="hljs-string">&#x27;Rinse thoroughly with fresh water&#x27;</span>,
+        <span class="hljs-string">&#x27;Purge with fresh water&#x27;</span>,
+        <span class="hljs-string">&#x27;Allow to dry completely&#x27;</span>,
+        isForColdWater ? <span class="hljs-string">&#x27;Check for ice buildup and damage&#x27;</span> : <span class="hljs-literal">null</span>
+      ].<span class="hljs-title function_">filter</span>(<span class="hljs-title class_">Boolean</span>)
+    };
+  }
+  
+  <span class="hljs-title function_">visitBCD</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">BCDProduct</span>): <span class="hljs-title class_">MaintenanceSchedule</span> {
+    <span class="hljs-comment">// Different schedules based on BCD characteristics</span>
+    <span class="hljs-keyword">const</span> hasPockets = product.<span class="hljs-property">specifications</span>.<span class="hljs-property">weight_pocket</span> === <span class="hljs-string">&#x27;Yes&#x27;</span>;
+    
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">annualService</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">serviceIntervalMonths</span>: <span class="hljs-number">24</span>,
+      <span class="hljs-attr">preDiveChecks</span>: [
+        <span class="hljs-string">&#x27;Check inflation and deflation&#x27;</span>,
+        <span class="hljs-string">&#x27;Inspect dump valves&#x27;</span>,
+        <span class="hljs-string">&#x27;Check oral inflation&#x27;</span>,
+        hasPockets ? <span class="hljs-string">&#x27;Secure weight pockets&#x27;</span> : <span class="hljs-literal">null</span>
+      ].<span class="hljs-title function_">filter</span>(<span class="hljs-title class_">Boolean</span>),
+      <span class="hljs-attr">postDiveActions</span>: [
+        <span class="hljs-string">&#x27;Rinse exterior with fresh water&#x27;</span>,
+        <span class="hljs-string">&#x27;Fill bladder partially with fresh water and slosh&#x27;</span>,
+        <span class="hljs-string">&#x27;Drain completely&#x27;</span>,
+        <span class="hljs-string">&#x27;Inflate and store partially inflated&#x27;</span>
+      ]
+    };
+  }
+  
+  <span class="hljs-title function_">visitFin</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">FinProduct</span>): <span class="hljs-title class_">MaintenanceSchedule</span> {
+    <span class="hljs-comment">// Fins have minimal maintenance needs</span>
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">annualService</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">serviceIntervalMonths</span>: <span class="hljs-number">0</span>, <span class="hljs-comment">// No scheduled service</span>
+      <span class="hljs-attr">preDiveChecks</span>: [
+        <span class="hljs-string">&#x27;Check straps for wear&#x27;</span>,
+        <span class="hljs-string">&#x27;Inspect blades for cracks or damage&#x27;</span>
+      ],
+      <span class="hljs-attr">postDiveActions</span>: [
+        <span class="hljs-string">&#x27;Rinse with fresh water&#x27;</span>,
+        <span class="hljs-string">&#x27;Allow to dry away from direct sunlight&#x27;</span>
+      ]
+    };
+  }
+  
+  <span class="hljs-keyword">private</span> <span class="hljs-title function_">getDiveFrequency</span>(): <span class="hljs-built_in">number</span> {
+    <span class="hljs-comment">// In a real app, this would be user-specific</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-number">20</span>; <span class="hljs-comment">// Default to 20 dives per year</span>
+  }
+}
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">MaintenanceSchedule</span> {
+  <span class="hljs-attr">annualService</span>: <span class="hljs-built_in">boolean</span>;
+  <span class="hljs-attr">serviceIntervalMonths</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">preDiveChecks</span>: <span class="hljs-built_in">string</span>[];
+  <span class="hljs-attr">postDiveActions</span>: <span class="hljs-built_in">string</span>[];
+}
+</code></pre>
+<h3 id="3-product-compatibility-visitor">3. Product Compatibility Visitor</h3>
+<p>A visitor that checks compatibility between different product types:</p>
+<pre><code class="language-typescript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CompatibilityCheckerVisitor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">ProductVisitor</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">otherProducts</span>: <span class="hljs-title class_">VisitableProduct</span>[];
+  
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">otherProducts: VisitableProduct[]</span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">otherProducts</span> = otherProducts;
+  }
+  
+  <span class="hljs-title function_">visitRegulator</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">RegulatorProduct</span>): <span class="hljs-title class_">CompatibilityResult</span> {
+    <span class="hljs-keyword">const</span> compatibilityIssues = [];
+    <span class="hljs-keyword">const</span> compatibleWith = [];
+    
+    <span class="hljs-comment">// Check compatibility with other products</span>
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> otherProduct <span class="hljs-keyword">of</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">otherProducts</span>) {
+      <span class="hljs-keyword">if</span> (otherProduct.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;regulator&#x27;</span>) {
+        <span class="hljs-comment">// Regulators don&#x27;t interact with other regulators</span>
+        <span class="hljs-keyword">continue</span>;
+      }
+      
+      <span class="hljs-keyword">if</span> (otherProduct.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;bcd&#x27;</span>) {
+        <span class="hljs-keyword">const</span> bcd = otherProduct <span class="hljs-keyword">as</span> <span class="hljs-title class_">BCDProduct</span>;
+        
+        <span class="hljs-comment">// Check for compatibility issues</span>
+        <span class="hljs-keyword">if</span> (product.<span class="hljs-property">specifications</span>.<span class="hljs-property">low_pressure_port</span> &lt; <span class="hljs-number">4</span> &amp;&amp; 
+            bcd.<span class="hljs-property">specifications</span>.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;Backplate&#x27;</span>) {
+          compatibilityIssues.<span class="hljs-title function_">push</span>({
+            <span class="hljs-attr">product</span>: bcd,
+            <span class="hljs-attr">issue</span>: <span class="hljs-string">&#x27;This regulator has insufficient LP ports for a technical backplate configuration&#x27;</span>
+          });
+        } <span class="hljs-keyword">else</span> {
+          compatibleWith.<span class="hljs-title function_">push</span>(bcd);
+        }
+      }
+    }
+    
+    <span class="hljs-keyword">return</span> {
+      product,
+      compatibleWith,
+      compatibilityIssues
+    };
+  }
+  
+  <span class="hljs-title function_">visitBCD</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">BCDProduct</span>): <span class="hljs-title class_">CompatibilityResult</span> {
+    <span class="hljs-keyword">const</span> compatibilityIssues = [];
+    <span class="hljs-keyword">const</span> compatibleWith = [];
+    
+    <span class="hljs-comment">// Check compatibility with other products</span>
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> otherProduct <span class="hljs-keyword">of</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">otherProducts</span>) {
+      <span class="hljs-keyword">if</span> (otherProduct.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;bcd&#x27;</span>) {
+        <span class="hljs-comment">// BCDs don&#x27;t interact with other BCDs</span>
+        <span class="hljs-keyword">continue</span>;
+      }
+      
+      <span class="hljs-keyword">if</span> (otherProduct.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;regulator&#x27;</span>) {
+        <span class="hljs-keyword">const</span> reg = otherProduct <span class="hljs-keyword">as</span> <span class="hljs-title class_">RegulatorProduct</span>;
+        
+        <span class="hljs-comment">// Check for compatibility issues</span>
+        <span class="hljs-keyword">if</span> (product.<span class="hljs-property">specifications</span>.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;Backplate&#x27;</span> &amp;&amp; 
+            reg.<span class="hljs-property">specifications</span>.<span class="hljs-property">low_pressure_port</span> &lt; <span class="hljs-number">4</span>) {
+          compatibilityIssues.<span class="hljs-title function_">push</span>({
+            <span class="hljs-attr">product</span>: reg,
+            <span class="hljs-attr">issue</span>: <span class="hljs-string">&#x27;This technical BCD requires a regulator with at least 4 LP ports&#x27;</span>
+          });
+        } <span class="hljs-keyword">else</span> {
+          compatibleWith.<span class="hljs-title function_">push</span>(reg);
+        }
+      }
+    }
+    
+    <span class="hljs-keyword">return</span> {
+      product,
+      compatibleWith,
+      compatibilityIssues
+    };
+  }
+  
+  <span class="hljs-title function_">visitFin</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">FinProduct</span>): <span class="hljs-title class_">CompatibilityResult</span> {
+    <span class="hljs-comment">// Fins typically have minimal compatibility issues with other gear</span>
+    <span class="hljs-keyword">return</span> {
+      product,
+      <span class="hljs-attr">compatibleWith</span>: <span class="hljs-variable language_">this</span>.<span class="hljs-property">otherProducts</span>.<span class="hljs-title function_">filter</span>(<span class="hljs-function"><span class="hljs-params">p</span> =&gt;</span> p.<span class="hljs-property">id</span> !== product.<span class="hljs-property">id</span>),
+      <span class="hljs-attr">compatibilityIssues</span>: []
+    };
+  }
+}
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">CompatibilityResult</span> {
+  <span class="hljs-attr">product</span>: <span class="hljs-title class_">Product</span>;
+  <span class="hljs-attr">compatibleWith</span>: <span class="hljs-title class_">Product</span>[];
+  <span class="hljs-attr">compatibilityIssues</span>: {
+    <span class="hljs-attr">product</span>: <span class="hljs-title class_">Product</span>;
+    <span class="hljs-attr">issue</span>: <span class="hljs-built_in">string</span>;
+  }[];
+}
+</code></pre>
+<h3 id="4-export-formatter-visitor">4. Export Formatter Visitor</h3>
+<p>A visitor that formats product information for different export formats:</p>
+<pre><code class="language-typescript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ExportFormatterVisitor</span>&lt;T&gt; <span class="hljs-keyword">implements</span> <span class="hljs-title class_">ProductVisitor</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">format</span>: <span class="hljs-string">&#x27;json&#x27;</span> | <span class="hljs-string">&#x27;csv&#x27;</span> | <span class="hljs-string">&#x27;pdf&#x27;</span>;
+  
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">format: <span class="hljs-string">&#x27;json&#x27;</span> | <span class="hljs-string">&#x27;csv&#x27;</span> | <span class="hljs-string">&#x27;pdf&#x27;</span></span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">format</span> = format;
+  }
+  
+  <span class="hljs-title function_">visitRegulator</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">RegulatorProduct</span>): T {
+    <span class="hljs-keyword">switch</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">format</span>) {
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;json&#x27;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">formatAsJson</span>(product) <span class="hljs-keyword">as</span> T;
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;csv&#x27;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">formatAsCsv</span>(product) <span class="hljs-keyword">as</span> T;
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;pdf&#x27;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">formatAsPdfData</span>(product) <span class="hljs-keyword">as</span> T;
+    }
+  }
+  
+  <span class="hljs-title function_">visitBCD</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">BCDProduct</span>): T {
+    <span class="hljs-keyword">switch</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">format</span>) {
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;json&#x27;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">formatAsJson</span>(product) <span class="hljs-keyword">as</span> T;
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;csv&#x27;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">formatAsCsv</span>(product) <span class="hljs-keyword">as</span> T;
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;pdf&#x27;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">formatAsPdfData</span>(product) <span class="hljs-keyword">as</span> T;
+    }
+  }
+  
+  <span class="hljs-title function_">visitFin</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">FinProduct</span>): T {
+    <span class="hljs-keyword">switch</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">format</span>) {
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;json&#x27;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">formatAsJson</span>(product) <span class="hljs-keyword">as</span> T;
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;csv&#x27;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">formatAsCsv</span>(product) <span class="hljs-keyword">as</span> T;
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;pdf&#x27;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">formatAsPdfData</span>(product) <span class="hljs-keyword">as</span> T;
+    }
+  }
+  
+  <span class="hljs-keyword">private</span> <span class="hljs-title function_">formatAsJson</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">Product</span>): <span class="hljs-built_in">any</span> {
+    <span class="hljs-comment">// Format specific to product type but returns in JSON format</span>
+    <span class="hljs-keyword">const</span> baseData = {
+      <span class="hljs-attr">id</span>: product.<span class="hljs-property">id</span>,
+      <span class="hljs-attr">type</span>: product.<span class="hljs-property">type</span>,
+      <span class="hljs-attr">name</span>: product.<span class="hljs-property">name</span>,
+      <span class="hljs-attr">brand</span>: product.<span class="hljs-property">brand</span>,
+      <span class="hljs-attr">price</span>: product.<span class="hljs-property">price</span>
+    };
+    
+    <span class="hljs-comment">// Add specific fields based on product type</span>
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;regulator&#x27;</span>) {
+      <span class="hljs-keyword">return</span> {
+        ...baseData,
+        <span class="hljs-attr">temperature</span>: product.<span class="hljs-property">specifications</span>.<span class="hljs-property">temperature</span>,
+        <span class="hljs-attr">highPressurePorts</span>: product.<span class="hljs-property">specifications</span>.<span class="hljs-property">high_pressure_port</span>,
+        <span class="hljs-attr">lowPressurePorts</span>: product.<span class="hljs-property">specifications</span>.<span class="hljs-property">low_pressure_port</span>
+      };
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (product.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;bcd&#x27;</span>) {
+      <span class="hljs-keyword">return</span> {
+        ...baseData,
+        <span class="hljs-attr">style</span>: product.<span class="hljs-property">specifications</span>.<span class="hljs-property">type</span>,
+        <span class="hljs-attr">weightPockets</span>: product.<span class="hljs-property">specifications</span>.<span class="hljs-property">weight_pocket</span>,
+        <span class="hljs-attr">liftCapacity</span>: product.<span class="hljs-property">specifications</span>.<span class="hljs-property">lift_capacity_base_on_largest_size_kg</span>
+      };
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (product.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;fin&#x27;</span>) {
+      <span class="hljs-keyword">return</span> {
+        ...baseData,
+        <span class="hljs-attr">material</span>: product.<span class="hljs-property">specifications</span>.<span class="hljs-property">material</span>,
+        <span class="hljs-attr">style</span>: product.<span class="hljs-property">specifications</span>.<span class="hljs-property">style</span>
+      };
+    }
+    
+    <span class="hljs-keyword">return</span> baseData;
+  }
+  
+  <span class="hljs-keyword">private</span> <span class="hljs-title function_">formatAsCsv</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">Product</span>): <span class="hljs-built_in">string</span> {
+    <span class="hljs-comment">// Base CSV fields</span>
+    <span class="hljs-keyword">let</span> csv = <span class="hljs-string">`<span class="hljs-subst">${product.id}</span>,<span class="hljs-subst">${product.<span class="hljs-keyword">type</span>}</span>,<span class="hljs-subst">${product.name}</span>,<span class="hljs-subst">${product.brand}</span>,<span class="hljs-subst">${product.price}</span>`</span>;
+    
+    <span class="hljs-comment">// Add type-specific fields</span>
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;regulator&#x27;</span>) {
+      csv += <span class="hljs-string">`,<span class="hljs-subst">${product.specifications.temperature}</span>,<span class="hljs-subst">${product.specifications.high_pressure_port}</span>,<span class="hljs-subst">${product.specifications.low_pressure_port}</span>`</span>;
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (product.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;bcd&#x27;</span>) {
+      csv += <span class="hljs-string">`,<span class="hljs-subst">${product.specifications.<span class="hljs-keyword">type</span>}</span>,<span class="hljs-subst">${product.specifications.weight_pocket}</span>,<span class="hljs-subst">${product.specifications.lift_capacity_base_on_largest_size_kg}</span>`</span>;
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (product.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;fin&#x27;</span>) {
+      csv += <span class="hljs-string">`,<span class="hljs-subst">${product.specifications.material}</span>,<span class="hljs-subst">${product.specifications.style}</span>`</span>;
+    }
+    
+    <span class="hljs-keyword">return</span> csv;
+  }
+  
+  <span class="hljs-keyword">private</span> <span class="hljs-title function_">formatAsPdfData</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">Product</span>): <span class="hljs-built_in">any</span> {
+    <span class="hljs-comment">// Create structured data ready for PDF generation</span>
+    <span class="hljs-keyword">const</span> title = <span class="hljs-string">`<span class="hljs-subst">${product.brand}</span> <span class="hljs-subst">${product.name}</span>`</span>;
+    <span class="hljs-keyword">const</span> subtitle = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">getPdfSubtitle</span>(product);
+    <span class="hljs-keyword">const</span> sections = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">getPdfSections</span>(product);
+    
+    <span class="hljs-keyword">return</span> {
+      title,
+      subtitle,
+      <span class="hljs-attr">price</span>: <span class="hljs-string">`$<span class="hljs-subst">${product.price.toFixed(<span class="hljs-number">2</span>)}</span>`</span>,
+      <span class="hljs-attr">imageUrl</span>: product.<span class="hljs-property">imageUrl</span>,
+      sections
+    };
+  }
+  
+  <span class="hljs-keyword">private</span> <span class="hljs-title function_">getPdfSubtitle</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">Product</span>): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">switch</span> (product.<span class="hljs-property">type</span>) {
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;regulator&#x27;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-string">`Diving Regulator - <span class="hljs-subst">${product.specifications.temperature}</span>`</span>;
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;bcd&#x27;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-string">`Buoyancy Control Device - <span class="hljs-subst">${product.specifications.<span class="hljs-keyword">type</span>}</span> Style`</span>;
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;fin&#x27;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-string">`Diving Fins - <span class="hljs-subst">${product.specifications.style === <span class="hljs-string">&#x27;open&#x27;</span> ? <span class="hljs-string">&#x27;Open Heel&#x27;</span> : <span class="hljs-string">&#x27;Full Foot&#x27;</span>}</span>`</span>;
+      <span class="hljs-attr">default</span>:
+        <span class="hljs-keyword">return</span> product.<span class="hljs-property">type</span>.<span class="hljs-title function_">charAt</span>(<span class="hljs-number">0</span>).<span class="hljs-title function_">toUpperCase</span>() + product.<span class="hljs-property">type</span>.<span class="hljs-title function_">slice</span>(<span class="hljs-number">1</span>);
+    }
+  }
+  
+  <span class="hljs-keyword">private</span> <span class="hljs-title function_">getPdfSections</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">Product</span>): {<span class="hljs-attr">heading</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">content</span>: <span class="hljs-built_in">string</span>[]}[] {
+    <span class="hljs-keyword">const</span> sections = [
+      {
+        <span class="hljs-attr">heading</span>: <span class="hljs-string">&#x27;General Information&#x27;</span>,
+        <span class="hljs-attr">content</span>: [
+          <span class="hljs-string">`Brand: <span class="hljs-subst">${product.brand}</span>`</span>,
+          <span class="hljs-string">`Model: <span class="hljs-subst">${product.name}</span>`</span>,
+          <span class="hljs-string">`Price: $<span class="hljs-subst">${product.price.toFixed(<span class="hljs-number">2</span>)}</span>`</span>
+        ]
+      }
+    ];
+    
+    <span class="hljs-comment">// Add type-specific sections</span>
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;regulator&#x27;</span>) {
+      sections.<span class="hljs-title function_">push</span>({
+        <span class="hljs-attr">heading</span>: <span class="hljs-string">&#x27;Technical Specifications&#x27;</span>,
+        <span class="hljs-attr">content</span>: [
+          <span class="hljs-string">`Water Temperature: <span class="hljs-subst">${product.specifications.temperature}</span>`</span>,
+          <span class="hljs-string">`HP Ports: <span class="hljs-subst">${product.specifications.high_pressure_port}</span>`</span>,
+          <span class="hljs-string">`LP Ports: <span class="hljs-subst">${product.specifications.low_pressure_port}</span>`</span>,
+          <span class="hljs-string">`Adjustable Airflow: <span class="hljs-subst">${product.specifications.adjustable_airflow || <span class="hljs-string">&#x27;No&#x27;</span>}</span>`</span>
+        ]
+      });
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (product.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;bcd&#x27;</span>) {
+      sections.<span class="hljs-title function_">push</span>({
+        <span class="hljs-attr">heading</span>: <span class="hljs-string">&#x27;Technical Specifications&#x27;</span>,
+        <span class="hljs-attr">content</span>: [
+          <span class="hljs-string">`Style: <span class="hljs-subst">${product.specifications.<span class="hljs-keyword">type</span>}</span>`</span>,
+          <span class="hljs-string">`Weight Pockets: <span class="hljs-subst">${product.specifications.weight_pocket}</span>`</span>,
+          <span class="hljs-string">`Weight: <span class="hljs-subst">${product.specifications.weight_kg}</span> kg`</span>,
+          <span class="hljs-string">`Lift Capacity: <span class="hljs-subst">${product.specifications.lift_capacity_base_on_largest_size_kg}</span> kg`</span>
+        ]
+      });
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (product.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;fin&#x27;</span>) {
+      sections.<span class="hljs-title function_">push</span>({
+        <span class="hljs-attr">heading</span>: <span class="hljs-string">&#x27;Technical Specifications&#x27;</span>,
+        <span class="hljs-attr">content</span>: [
+          <span class="hljs-string">`Material: <span class="hljs-subst">${product.specifications.material}</span>`</span>,
+          <span class="hljs-string">`Style: <span class="hljs-subst">${product.specifications.style === <span class="hljs-string">&#x27;open&#x27;</span> ? <span class="hljs-string">&#x27;Open Heel&#x27;</span> : <span class="hljs-string">&#x27;Full Foot&#x27;</span>}</span>`</span>,
+          <span class="hljs-string">`Stiffness: <span class="hljs-subst">${product.specifications.stiffness || <span class="hljs-string">&#x27;Medium&#x27;</span>}</span>`</span>
+        ]
+      });
+    }
+    
+    <span class="hljs-keyword">return</span> sections;
+  }
+}
+</code></pre>
+<h3 id="5-travel-weight-calculator-visitor">5. Travel Weight Calculator Visitor</h3>
+<p>A visitor that calculates travel weight considerations for each product:</p>
+<pre><code class="language-typescript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TravelWeightCalculatorVisitor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">ProductVisitor</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">travelMethod</span>: <span class="hljs-string">&#x27;airplane&#x27;</span> | <span class="hljs-string">&#x27;car&#x27;</span> | <span class="hljs-string">&#x27;boat&#x27;</span>;
+  
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">travelMethod: <span class="hljs-string">&#x27;airplane&#x27;</span> | <span class="hljs-string">&#x27;car&#x27;</span> | <span class="hljs-string">&#x27;boat&#x27;</span></span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">travelMethod</span> = travelMethod;
+  }
+  
+  <span class="hljs-title function_">visitRegulator</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">RegulatorProduct</span>): <span class="hljs-title class_">TravelWeightInfo</span> {
+    <span class="hljs-comment">// Base weight from specifications</span>
+    <span class="hljs-keyword">const</span> baseWeight = product.<span class="hljs-property">specifications</span>.<span class="hljs-property">weights_base_on_yoke</span> || <span class="hljs-number">1.2</span>; <span class="hljs-comment">// kg, default if not specified</span>
+    
+    <span class="hljs-comment">// Additional weights for accessories</span>
+    <span class="hljs-keyword">let</span> accessoryWeight = <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">specifications</span>.<span class="hljs-property">includes_gauge</span>) accessoryWeight += <span class="hljs-number">0.3</span>;
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">specifications</span>.<span class="hljs-property">includes_octopus</span>) accessoryWeight += <span class="hljs-number">0.5</span>;
+    
+    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">calculateTravelInfo</span>(product, baseWeight, accessoryWeight);
+  }
+  
+  <span class="hljs-title function_">visitBCD</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">BCDProduct</span>): <span class="hljs-title class_">TravelWeightInfo</span> {
+    <span class="hljs-comment">// Base weight from specifications</span>
+    <span class="hljs-keyword">const</span> baseWeight = product.<span class="hljs-property">specifications</span>.<span class="hljs-property">weight_kg</span> || <span class="hljs-number">3.0</span>; <span class="hljs-comment">// kg, default if not specified</span>
+    
+    <span class="hljs-comment">// Additional weight for accessories</span>
+    <span class="hljs-keyword">let</span> accessoryWeight = <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">specifications</span>.<span class="hljs-property">weight_pocket</span> === <span class="hljs-string">&#x27;Yes&#x27;</span>) accessoryWeight += <span class="hljs-number">0.5</span>; <span class="hljs-comment">// Empty weight pockets</span>
+    
+    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">calculateTravelInfo</span>(product, baseWeight, accessoryWeight);
+  }
+  
+  <span class="hljs-title function_">visitFin</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">FinProduct</span>): <span class="hljs-title class_">TravelWeightInfo</span> {
+    <span class="hljs-comment">// Base weight calculation for fins</span>
+    <span class="hljs-keyword">const</span> baseWeight = product.<span class="hljs-property">specifications</span>.<span class="hljs-property">weight_kg</span> || <span class="hljs-number">1.0</span>; <span class="hljs-comment">// kg, default if not specified</span>
+    <span class="hljs-keyword">const</span> accessoryWeight = <span class="hljs-number">0</span>; <span class="hljs-comment">// Fins typically don&#x27;t have accessories</span>
+    
+    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">calculateTravelInfo</span>(product, baseWeight, accessoryWeight);
+  }
+  
+  <span class="hljs-keyword">private</span> <span class="hljs-title function_">calculateTravelInfo</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">Product</span>, <span class="hljs-attr">baseWeight</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">accessoryWeight</span>: <span class="hljs-built_in">number</span>): <span class="hljs-title class_">TravelWeightInfo</span> {
+    <span class="hljs-keyword">const</span> totalWeight = baseWeight + accessoryWeight;
+    
+    <span class="hljs-comment">// Calculate limits and fees based on travel method</span>
+    <span class="hljs-keyword">let</span> <span class="hljs-attr">weightLimit</span>: <span class="hljs-built_in">number</span>;
+    <span class="hljs-keyword">let</span> <span class="hljs-attr">extraFee</span>: <span class="hljs-built_in">number</span> = <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">let</span> <span class="hljs-attr">packingTips</span>: <span class="hljs-built_in">string</span>[] = [];
+    
+    <span class="hljs-keyword">switch</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">travelMethod</span>) {
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;airplane&#x27;</span>:
+        weightLimit = <span class="hljs-number">23</span>; <span class="hljs-comment">// kg, typical checked baggage limit</span>
+        <span class="hljs-keyword">if</span> (totalWeight &gt; <span class="hljs-number">5</span>) {
+          extraFee = <span class="hljs-number">30</span>; <span class="hljs-comment">// Standard overweight fee</span>
+          packingTips.<span class="hljs-title function_">push</span>(<span class="hljs-string">&#x27;Pack in checked luggage&#x27;</span>);
+          packingTips.<span class="hljs-title function_">push</span>(<span class="hljs-string">&#x27;Remove heavy components if possible&#x27;</span>);
+        }
+        <span class="hljs-keyword">break</span>;
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;car&#x27;</span>:
+        weightLimit = <span class="hljs-number">100</span>; <span class="hljs-comment">// Essentially unlimited for car travel</span>
+        packingTips.<span class="hljs-title function_">push</span>(<span class="hljs-string">&#x27;No weight restrictions for car travel&#x27;</span>);
+        <span class="hljs-keyword">break</span>;
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;boat&#x27;</span>:
+        weightLimit = <span class="hljs-number">15</span>; <span class="hljs-comment">// kg, smaller boats may have strict limits</span>
+        <span class="hljs-keyword">if</span> (totalWeight &gt; <span class="hljs-number">10</span>) {
+          extraFee = <span class="hljs-number">20</span>; <span class="hljs-comment">// Some dive boats charge for extra weight</span>
+          packingTips.<span class="hljs-title function_">push</span>(<span class="hljs-string">&#x27;Check with boat operator for weight limits&#x27;</span>);
+        }
+        <span class="hljs-keyword">break</span>;
+    }
+    
+    <span class="hljs-comment">// Add specific packing tips based on product type</span>
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;regulator&#x27;</span>) {
+      packingTips.<span class="hljs-title function_">push</span>(<span class="hljs-string">&#x27;Pack in padded regulator bag&#x27;</span>);
+      packingTips.<span class="hljs-title function_">push</span>(<span class="hljs-string">&#x27;Protect mouthpiece and hoses&#x27;</span>);
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (product.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;bcd&#x27;</span>) {
+      packingTips.<span class="hljs-title function_">push</span>(<span class="hljs-string">&#x27;Deflate completely and fold compactly&#x27;</span>);
+      packingTips.<span class="hljs-title function_">push</span>(<span class="hljs-string">&#x27;Remove weights and accessories&#x27;</span>);
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (product.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;fin&#x27;</span>) {
+      packingTips.<span class="hljs-title function_">push</span>(<span class="hljs-string">&#x27;Stack fins together to save space&#x27;</span>);
+      packingTips.<span class="hljs-title function_">push</span>(<span class="hljs-string">&#x27;Protect fin blades from bending&#x27;</span>);
+    }
+    
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">product</span>: product,
+      baseWeight,
+      accessoryWeight,
+      totalWeight,
+      weightLimit,
+      extraFee,
+      <span class="hljs-attr">exceedsLimit</span>: totalWeight &gt; weightLimit,
+      packingTips
+    };
+  }
+}
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">TravelWeightInfo</span> {
+  <span class="hljs-attr">product</span>: <span class="hljs-title class_">Product</span>;
+  <span class="hljs-attr">baseWeight</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">accessoryWeight</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">totalWeight</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">weightLimit</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">extraFee</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">exceedsLimit</span>: <span class="hljs-built_in">boolean</span>;
+  <span class="hljs-attr">packingTips</span>: <span class="hljs-built_in">string</span>[];
+}
+</code></pre>
+<h2 id="usage-in-components">Usage in Components</h2>
+<p>Here's how these alternative visitors could be used in the application:</p>
+<h3 id="technical-specs-formatter-example">Technical Specs Formatter Example</h3>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/components/product/ProductSpecifications.tsx</span>
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">ServiceFacade</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../patterns/facade/ServiceFacade&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">TechnicalSpecsFormatterVisitor</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../patterns/visitor/AlternativeVisitors&#x27;</span>;
+
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">ProductSpecifications</span> = (<span class="hljs-params">{ product }</span>) =&gt; {
+  <span class="hljs-keyword">const</span> [formattedSpecs, setFormattedSpecs] = useState&lt;<span class="hljs-built_in">string</span>[]&gt;([]);
+  
+  <span class="hljs-title function_">useEffect</span>(<span class="hljs-function">() =&gt;</span> {
+    <span class="hljs-comment">// Convert to visitable product</span>
+    <span class="hljs-keyword">const</span> visitableProduct = <span class="hljs-title function_">makeVisitable</span>(product);
+    
+    <span class="hljs-comment">// Apply visitor to get formatted specifications</span>
+    <span class="hljs-keyword">const</span> specsVisitor = <span class="hljs-keyword">new</span> <span class="hljs-title class_">TechnicalSpecsFormatterVisitor</span>();
+    <span class="hljs-keyword">const</span> specs = visitableProduct.<span class="hljs-title function_">accept</span>(specsVisitor);
+    
+    <span class="hljs-title function_">setFormattedSpecs</span>(specs);
+  }, [product]);
+  
+  <span class="hljs-keyword">return</span> (
+    <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">View</span> <span class="hljs-attr">style</span>=<span class="hljs-string">{styles.specsContainer}</span>&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">Text</span> <span class="hljs-attr">style</span>=<span class="hljs-string">{styles.specsTitle}</span>&gt;</span>Specifications<span class="hljs-tag">&lt;/<span class="hljs-name">Text</span>&gt;</span>
+      {formattedSpecs.map((spec, index) =&gt; (
+        <span class="hljs-tag">&lt;<span class="hljs-name">Text</span> <span class="hljs-attr">key</span>=<span class="hljs-string">{index}</span> <span class="hljs-attr">style</span>=<span class="hljs-string">{styles.specItem}</span>&gt;</span>{spec}<span class="hljs-tag">&lt;/<span class="hljs-name">Text</span>&gt;</span>
+      ))}
+    <span class="hljs-tag">&lt;/<span class="hljs-name">View</span>&gt;</span></span>
+  );
+};
+</code></pre>
+<h3 id="compatibility-checker-example">Compatibility Checker Example</h3>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/screens/ProductCompatibility/CompatibilityScreen.tsx</span>
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">ServiceFacade</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../patterns/facade/ServiceFacade&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">CompatibilityCheckerVisitor</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../patterns/visitor/AlternativeVisitors&#x27;</span>;
+
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">CompatibilityScreen</span> = (<span class="hljs-params">{ route }</span>) =&gt; {
+  <span class="hljs-keyword">const</span> { productId } = route.<span class="hljs-property">params</span>;
+  <span class="hljs-keyword">const</span> [mainProduct, setMainProduct] = <span class="hljs-title function_">useState</span>(<span class="hljs-literal">null</span>);
+  <span class="hljs-keyword">const</span> [otherProducts, setOtherProducts] = <span class="hljs-title function_">useState</span>([]);
+  <span class="hljs-keyword">const</span> [compatibilityResults, setCompatibilityResults] = <span class="hljs-title function_">useState</span>(<span class="hljs-literal">null</span>);
+  
+  <span class="hljs-title function_">useEffect</span>(<span class="hljs-function">() =&gt;</span> {
+    <span class="hljs-keyword">const</span> <span class="hljs-title function_">loadData</span> = <span class="hljs-keyword">async</span> (<span class="hljs-params"></span>) =&gt; {
+      <span class="hljs-keyword">const</span> serviceFacade = <span class="hljs-title class_">ServiceFacade</span>.<span class="hljs-title function_">getInstance</span>();
+      
+      <span class="hljs-comment">// Load the main product</span>
+      <span class="hljs-keyword">const</span> { product } = <span class="hljs-keyword">await</span> serviceFacade.<span class="hljs-title function_">getProductWithTechDetails</span>(productId);
+      <span class="hljs-title function_">setMainProduct</span>(product);
+      
+      <span class="hljs-comment">// Load other products for comparison</span>
+      <span class="hljs-keyword">const</span> allProducts = <span class="hljs-keyword">await</span> serviceFacade.<span class="hljs-title function_">getProductsWithFilters</span>({});
+      <span class="hljs-keyword">const</span> others = allProducts.<span class="hljs-title function_">filter</span>(<span class="hljs-function"><span class="hljs-params">p</span> =&gt;</span> p.<span class="hljs-property">id</span> !== productId);
+      <span class="hljs-title function_">setOtherProducts</span>(others);
+      
+      <span class="hljs-comment">// Make all products visitable</span>
+      <span class="hljs-keyword">const</span> visitableMain = <span class="hljs-title function_">makeVisitable</span>(product);
+      <span class="hljs-keyword">const</span> visitableOthers = others.<span class="hljs-title function_">map</span>(<span class="hljs-function"><span class="hljs-params">p</span> =&gt;</span> <span class="hljs-title function_">makeVisitable</span>(p));
+      
+      <span class="hljs-comment">// Run compatibility check</span>
+      <span class="hljs-keyword">const</span> compatibilityVisitor = <span class="hljs-keyword">new</span> <span class="hljs-title class_">CompatibilityCheckerVisitor</span>(visitableOthers);
+      <span class="hljs-keyword">const</span> results = visitableMain.<span class="hljs-title function_">accept</span>(compatibilityVisitor);
+      
+      <span class="hljs-title function_">setCompatibilityResults</span>(results);
+    };
+    
+    <span class="hljs-title function_">loadData</span>();
+  }, [productId]);
+  
+  <span class="hljs-comment">// Render component with compatibility results...</span>
+};
+</code></pre>
+<h2 id="benefits-of-these-alternative-visitors">Benefits of These Alternative Visitors</h2>
+<p>These alternative visitor implementations showcase the flexibility of the Visitor pattern by:</p>
+<ol>
+<li>
+<p><strong>Encapsulating Different Algorithms</strong>: Each visitor encapsulates a specific algorithm or operation that can be applied to different product types.</p>
+</li>
+<li>
+<p><strong>Type-Specific Processing</strong>: Visitors can perform type-specific processing without conditional logic in the components.</p>
+</li>
+<li>
+<p><strong>Single Responsibility</strong>: Each visitor has a single responsibility, making the code easier to understand and maintain.</p>
+</li>
+<li>
+<p><strong>Open for Extension</strong>: New visitors can be added without modifying the product classes.</p>
+</li>
+<li>
+<p><strong>Clean Component Code</strong>: UI components can use visitors without understanding the complexities of different product types.</p>
+</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>The Visitor pattern provides a powerful way to add operations to the product hierarchy without modifying the product classes. The alternative examples shown here demonstrate how the pattern can be extended beyond the current implementation to handle a variety of operations such as technical specification formatting, compatibility checking, maintenance scheduling, export formatting, and travel weight calculation.</p>
+<p>Each visitor implementation follows the same basic pattern but addresses different concerns, showcasing the versatility of the Visitor pattern in providing clean separation of concerns and maintainable code.</p>
+
+            <script async src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+            
+        </body>
+        </html>

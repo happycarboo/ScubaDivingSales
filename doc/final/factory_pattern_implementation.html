@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Factory Design Pattern Implementation in ScubaDivingApp</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="factory-design-pattern-implementation-in-scubadivingapp">Factory Design Pattern Implementation in ScubaDivingApp</h1>
+<h2 id="overview-of-factory-pattern">Overview of Factory Pattern</h2>
+<p>The Factory Method design pattern is a creational pattern that provides an interface for creating objects in a superclass, but allows subclasses to alter the type of objects that will be created. It addresses the problem of creating objects without specifying the exact class of the object that will be created.</p>
+<p>In the ScubaDivingApp, the Factory pattern has been implemented to standardize the creation of different product types (Regulators, BCDs, Fins) while ensuring consistent structure and behavior.</p>
+<h2 id="key-implementation-files">Key Implementation Files</h2>
+<p>The primary implementation of the Factory pattern in ScubaDivingApp is found in:</p>
+<ul>
+<li><strong><code>src/patterns/factory/ProductFactory.ts</code></strong>: Contains the product interfaces and factory implementation</li>
+</ul>
+<h2 id="core-factory-pattern-structure">Core Factory Pattern Structure</h2>
+<h3 id="product-interface">Product Interface</h3>
+<p>At the core of the Factory pattern is the <code>Product</code> interface, which defines the common structure for all product types:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/patterns/factory/ProductFactory.ts</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">Product</span> {
+  <span class="hljs-attr">id</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">type</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">brand</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">price</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">specifications</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">any</span>&gt;;
+  imageUrl?: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">link</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-title function_">getDescription</span>(): <span class="hljs-built_in">string</span>;
+}
+</code></pre>
+<h3 id="concrete-product-classes">Concrete Product Classes</h3>
+<p>The application implements specific product types as concrete classes:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/patterns/factory/ProductFactory.ts</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">RegulatorProduct</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Product</span> {
+  <span class="hljs-attr">id</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">brand</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">price</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">type</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">specifications</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">any</span>&gt;;
+  imageUrl?: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">link</span>: <span class="hljs-built_in">string</span>;
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">id: <span class="hljs-built_in">string</span>, name: <span class="hljs-built_in">string</span>, brand: <span class="hljs-built_in">string</span>, price: <span class="hljs-built_in">number</span>, specs: Record&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">any</span>&gt;, link: <span class="hljs-built_in">string</span></span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">id</span> = id;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">name</span> = name;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">brand</span> = brand;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">price</span> = price;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">type</span> = <span class="hljs-string">&#x27;regulator&#x27;</span>;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">specifications</span> = specs;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">link</span> = link;
+  }
+
+  <span class="hljs-title function_">getDescription</span>(): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-string">`<span class="hljs-subst">${<span class="hljs-variable language_">this</span>.brand}</span> <span class="hljs-subst">${<span class="hljs-variable language_">this</span>.name}</span> - A reliable regulator for your diving needs`</span>;
+  }
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BCDProduct</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Product</span> {
+  <span class="hljs-comment">// Similar implementation...</span>
+  
+  <span class="hljs-title function_">getDescription</span>(): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-string">`<span class="hljs-subst">${<span class="hljs-variable language_">this</span>.brand}</span> <span class="hljs-subst">${<span class="hljs-variable language_">this</span>.name}</span> - A comfortable BCD with excellent buoyancy control`</span>;
+  }
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">FinProduct</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Product</span> {
+  <span class="hljs-comment">// Similar implementation...</span>
+  
+  <span class="hljs-title function_">getDescription</span>(): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-string">`<span class="hljs-subst">${<span class="hljs-variable language_">this</span>.brand}</span> <span class="hljs-subst">${<span class="hljs-variable language_">this</span>.name}</span> - High-performance fins for optimal propulsion`</span>;
+  }
+}
+</code></pre>
+<h3 id="product-factory">Product Factory</h3>
+<p>The <code>ProductFactory</code> class is responsible for creating the appropriate product instances:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/patterns/factory/ProductFactory.ts</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ProductFactory</span> {
+  <span class="hljs-title function_">createProduct</span>(
+    <span class="hljs-attr">type</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">id</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">brand</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">price</span>: <span class="hljs-built_in">number</span>,
+    <span class="hljs-attr">link</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">specifications</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">any</span>&gt; = {},
+    imageUrl?: <span class="hljs-built_in">string</span>
+  ): <span class="hljs-title class_">Product</span> {
+    <span class="hljs-keyword">return</span> {
+      id,
+      <span class="hljs-keyword">type</span>,
+      name,
+      brand,
+      price,
+      link,
+      specifications,
+      imageUrl,
+      <span class="hljs-attr">getDescription</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-string">`<span class="hljs-subst">${brand}</span> <span class="hljs-subst">${name}</span> - <span class="hljs-subst">${<span class="hljs-keyword">type</span>}</span>`</span>
+    };
+  }
+}
+</code></pre>
+<h2 id="application-use-throughout-the-codebase">Application Use Throughout the Codebase</h2>
+<h3 id="1-product-creation-in-service-layer">1. Product Creation in Service Layer</h3>
+<p>The factory pattern is extensively used in the service layer to create product objects from various data sources:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/services/firebase/repositories/ProductRepository.ts (conceptual example)</span>
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">Product</span>, <span class="hljs-title class_">ProductFactory</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../patterns/factory/ProductFactory&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ProductRepository</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">IProductRepository</span> {
+  <span class="hljs-keyword">private</span> factory = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ProductFactory</span>();
+  
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">getProduct</span>(<span class="hljs-attr">id</span>: <span class="hljs-built_in">string</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">Product</span>&gt; {
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-comment">// Fetch raw data from Firebase</span>
+      <span class="hljs-keyword">const</span> doc = <span class="hljs-keyword">await</span> <span class="hljs-title function_">firestore</span>().<span class="hljs-title function_">collection</span>(<span class="hljs-string">&#x27;products&#x27;</span>).<span class="hljs-title function_">doc</span>(id).<span class="hljs-title function_">get</span>();
+      <span class="hljs-keyword">const</span> data = doc.<span class="hljs-title function_">data</span>();
+      
+      <span class="hljs-keyword">if</span> (!data) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Error</span>(<span class="hljs-string">`Product not found: <span class="hljs-subst">${id}</span>`</span>);
+      }
+      
+      <span class="hljs-comment">// Use factory to create the appropriate product instance</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">factory</span>.<span class="hljs-title function_">createProduct</span>(
+        data.<span class="hljs-property">type</span>,
+        id,
+        data.<span class="hljs-property">name</span>,
+        data.<span class="hljs-property">brand</span>,
+        data.<span class="hljs-property">price</span>,
+        data.<span class="hljs-property">link</span> || <span class="hljs-string">&#x27;&#x27;</span>,
+        data.<span class="hljs-property">specifications</span> || {},
+        data.<span class="hljs-property">imageUrl</span>
+      );
+    } <span class="hljs-keyword">catch</span> (error) {
+      <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error fetching product:&#x27;</span>, error);
+      <span class="hljs-keyword">throw</span> error;
+    }
+  }
+  
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">getAllProducts</span>(): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">Product</span>[]&gt; {
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-keyword">const</span> snapshot = <span class="hljs-keyword">await</span> <span class="hljs-title function_">firestore</span>().<span class="hljs-title function_">collection</span>(<span class="hljs-string">&#x27;products&#x27;</span>).<span class="hljs-title function_">get</span>();
+      
+      <span class="hljs-comment">// Use factory to create product instances</span>
+      <span class="hljs-keyword">return</span> snapshot.<span class="hljs-property">docs</span>.<span class="hljs-title function_">map</span>(<span class="hljs-function"><span class="hljs-params">doc</span> =&gt;</span> {
+        <span class="hljs-keyword">const</span> data = doc.<span class="hljs-title function_">data</span>();
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">factory</span>.<span class="hljs-title function_">createProduct</span>(
+          data.<span class="hljs-property">type</span>,
+          doc.<span class="hljs-property">id</span>,
+          data.<span class="hljs-property">name</span>,
+          data.<span class="hljs-property">brand</span>,
+          data.<span class="hljs-property">price</span>,
+          data.<span class="hljs-property">link</span> || <span class="hljs-string">&#x27;&#x27;</span>,
+          data.<span class="hljs-property">specifications</span> || {},
+          data.<span class="hljs-property">imageUrl</span>
+        );
+      });
+    } <span class="hljs-keyword">catch</span> (error) {
+      <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error fetching all products:&#x27;</span>, error);
+      <span class="hljs-keyword">throw</span> error;
+    }
+  }
+}
+</code></pre>
+<h3 id="2-integration-with-service-facade">2. Integration with Service Facade</h3>
+<p>The factory pattern integrates with the Service Facade to provide a consistent creation method across different parts of the application:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/patterns/facade/ServiceFacade.ts (conceptual example)</span>
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">Product</span>, <span class="hljs-title class_">ProductFactory</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../factory/ProductFactory&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ServiceFacade</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-attr">instance</span>: <span class="hljs-title class_">ServiceFacade</span>;
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">productFactory</span>: <span class="hljs-title class_">ProductFactory</span>;
+  
+  <span class="hljs-keyword">private</span> <span class="hljs-title function_">constructor</span>(<span class="hljs-params"></span>) {
+    <span class="hljs-comment">// Initialize factory</span>
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">productFactory</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ProductFactory</span>();
+  }
+  
+  <span class="hljs-comment">// Create product from external data source</span>
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">createProductFromExternalSource</span>(
+    <span class="hljs-attr">externalData</span>: <span class="hljs-built_in">any</span>,
+    <span class="hljs-attr">productType</span>: <span class="hljs-built_in">string</span>
+  ): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">Product</span>&gt; {
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-comment">// Generate a new unique ID</span>
+      <span class="hljs-keyword">const</span> id = <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">generateUniqueId</span>();
+      
+      <span class="hljs-comment">// Map external data to our product structure</span>
+      <span class="hljs-keyword">const</span> product = <span class="hljs-variable language_">this</span>.<span class="hljs-property">productFactory</span>.<span class="hljs-title function_">createProduct</span>(
+        productType,
+        id,
+        externalData.<span class="hljs-property">title</span> || <span class="hljs-string">&#x27;Unknown Product&#x27;</span>,
+        externalData.<span class="hljs-property">manufacturer</span> || <span class="hljs-string">&#x27;Unknown Brand&#x27;</span>,
+        <span class="hljs-built_in">parseFloat</span>(externalData.<span class="hljs-property">price</span>) || <span class="hljs-number">0</span>,
+        externalData.<span class="hljs-property">productUrl</span> || <span class="hljs-string">&#x27;&#x27;</span>,
+        {
+          <span class="hljs-comment">// Map external specifications to our format</span>
+          <span class="hljs-attr">material</span>: externalData.<span class="hljs-property">material</span>,
+          <span class="hljs-attr">weight</span>: externalData.<span class="hljs-property">weight</span>,
+          <span class="hljs-comment">// Other specifications</span>
+        },
+        externalData.<span class="hljs-property">imageUrl</span>
+      );
+      
+      <span class="hljs-comment">// Save to database</span>
+      <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">productRepository</span>.<span class="hljs-title function_">createProduct</span>(product);
+      
+      <span class="hljs-keyword">return</span> product;
+    } <span class="hljs-keyword">catch</span> (error) {
+      <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error creating product from external source:&#x27;</span>, error);
+      <span class="hljs-keyword">throw</span> error;
+    }
+  }
+}
+</code></pre>
+<h3 id="3-product-display-components">3. Product Display Components</h3>
+<p>The factory pattern helps components render products consistently:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/components/product/ProductCard.tsx (conceptual example)</span>
+<span class="hljs-keyword">import</span> <span class="hljs-title class_">React</span> <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;react&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">View</span>, <span class="hljs-title class_">Text</span>, <span class="hljs-title class_">Image</span>, <span class="hljs-title class_">StyleSheet</span>, <span class="hljs-title class_">TouchableOpacity</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;react-native&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">Product</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../patterns/factory/ProductFactory&#x27;</span>;
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">ProductCardProps</span> {
+  <span class="hljs-attr">product</span>: <span class="hljs-title class_">Product</span>;
+  <span class="hljs-attr">onPress</span>: <span class="hljs-function">(<span class="hljs-params">product: Product</span>) =&gt;</span> <span class="hljs-built_in">void</span>;
+}
+
+<span class="hljs-keyword">const</span> <span class="hljs-title class_">ProductCard</span>: <span class="hljs-title class_">React</span>.<span class="hljs-property">FC</span>&lt;<span class="hljs-title class_">ProductCardProps</span>&gt; = <span class="hljs-function">(<span class="hljs-params">{ product, onPress }</span>) =&gt;</span> {
+  <span class="hljs-keyword">return</span> (
+    <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">TouchableOpacity</span>
+      <span class="hljs-attr">style</span>=<span class="hljs-string">{styles.card}</span>
+      <span class="hljs-attr">onPress</span>=<span class="hljs-string">{()</span> =&gt;</span> onPress(product)}
+    &gt;
+      {product.imageUrl ? (
+        <span class="hljs-tag">&lt;<span class="hljs-name">Image</span>
+          <span class="hljs-attr">source</span>=<span class="hljs-string">{{</span> <span class="hljs-attr">uri:</span> <span class="hljs-attr">product.imageUrl</span> }}
+          <span class="hljs-attr">style</span>=<span class="hljs-string">{styles.image}</span>
+          <span class="hljs-attr">resizeMode</span>=<span class="hljs-string">&quot;contain&quot;</span>
+        /&gt;</span>
+      ) : (
+        <span class="hljs-tag">&lt;<span class="hljs-name">View</span> <span class="hljs-attr">style</span>=<span class="hljs-string">{styles.imagePlaceholder}</span>&gt;</span>
+          <span class="hljs-tag">&lt;<span class="hljs-name">Text</span> <span class="hljs-attr">style</span>=<span class="hljs-string">{styles.placeholderText}</span>&gt;</span>{product.type.toUpperCase()}<span class="hljs-tag">&lt;/<span class="hljs-name">Text</span>&gt;</span>
+        <span class="hljs-tag">&lt;/<span class="hljs-name">View</span>&gt;</span>
+      )}
+      
+      <span class="hljs-tag">&lt;<span class="hljs-name">View</span> <span class="hljs-attr">style</span>=<span class="hljs-string">{styles.details}</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">Text</span> <span class="hljs-attr">style</span>=<span class="hljs-string">{styles.brand}</span>&gt;</span>{product.brand}<span class="hljs-tag">&lt;/<span class="hljs-name">Text</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">Text</span> <span class="hljs-attr">style</span>=<span class="hljs-string">{styles.name}</span>&gt;</span>{product.name}<span class="hljs-tag">&lt;/<span class="hljs-name">Text</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">Text</span> <span class="hljs-attr">style</span>=<span class="hljs-string">{styles.price}</span>&gt;</span>${product.price.toFixed(2)}<span class="hljs-tag">&lt;/<span class="hljs-name">Text</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">Text</span> <span class="hljs-attr">style</span>=<span class="hljs-string">{styles.description}</span>&gt;</span>{product.getDescription()}<span class="hljs-tag">&lt;/<span class="hljs-name">Text</span>&gt;</span>
+      <span class="hljs-tag">&lt;/<span class="hljs-name">View</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">TouchableOpacity</span>&gt;</span></span>
+  );
+};
+
+<span class="hljs-keyword">const</span> styles = <span class="hljs-title class_">StyleSheet</span>.<span class="hljs-title function_">create</span>({
+  <span class="hljs-comment">// Styles...</span>
+});
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-title class_">ProductCard</span>;
+</code></pre>
+<h3 id="4-integration-with-mock-data-services">4. Integration with Mock Data Services</h3>
+<p>The factory pattern allows for creating consistent test data:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/services/mock/MockProductService.ts (conceptual example)</span>
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">Product</span>, <span class="hljs-title class_">ProductFactory</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../patterns/factory/ProductFactory&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MockProductService</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">factory</span>: <span class="hljs-title class_">ProductFactory</span>;
+  
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"></span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">factory</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ProductFactory</span>();
+  }
+  
+  <span class="hljs-title function_">getMockProducts</span>(): <span class="hljs-title class_">Product</span>[] {
+    <span class="hljs-keyword">return</span> [
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">factory</span>.<span class="hljs-title function_">createProduct</span>(
+        <span class="hljs-string">&#x27;regulator&#x27;</span>,
+        <span class="hljs-string">&#x27;1&#x27;</span>,
+        <span class="hljs-string">&#x27;MK25 EVO/S620 Ti&#x27;</span>,
+        <span class="hljs-string">&#x27;ScubaPro&#x27;</span>,
+        <span class="hljs-number">999.99</span>,
+        <span class="hljs-string">&#x27;https://example.com/product/1&#x27;</span>,
+        {
+          <span class="hljs-attr">qualityScore</span>: <span class="hljs-number">9</span>,
+          <span class="hljs-attr">temperature</span>: <span class="hljs-string">&#x27;Cold water&#x27;</span>,
+          <span class="hljs-attr">high_pressure_port</span>: <span class="hljs-number">2</span>,
+          <span class="hljs-attr">low_pressure_port</span>: <span class="hljs-number">5</span>
+        },
+        <span class="hljs-string">&#x27;https://example.com/images/regulator1.jpg&#x27;</span>
+      ),
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">factory</span>.<span class="hljs-title function_">createProduct</span>(
+        <span class="hljs-string">&#x27;bcd&#x27;</span>,
+        <span class="hljs-string">&#x27;2&#x27;</span>,
+        <span class="hljs-string">&#x27;Hydros Pro&#x27;</span>,
+        <span class="hljs-string">&#x27;ScubaPro&#x27;</span>,
+        <span class="hljs-number">799.99</span>,
+        <span class="hljs-string">&#x27;https://example.com/product/2&#x27;</span>,
+        {
+          <span class="hljs-attr">qualityScore</span>: <span class="hljs-number">8</span>,
+          <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;Jacket&#x27;</span>,
+          <span class="hljs-attr">weight_pocket</span>: <span class="hljs-string">&#x27;Yes&#x27;</span>,
+          <span class="hljs-attr">weight_kg</span>: <span class="hljs-number">2.7</span>
+        },
+        <span class="hljs-string">&#x27;https://example.com/images/bcd1.jpg&#x27;</span>
+      ),
+      <span class="hljs-comment">// More mock products...</span>
+    ];
+  }
+}
+</code></pre>
+<h2 id="benefits-of-the-factory-pattern-in-scubadivingapp">Benefits of the Factory Pattern in ScubaDivingApp</h2>
+<h3 id="1-consistent-product-creation">1. Consistent Product Creation</h3>
+<p>The factory ensures all products have the required fields and methods regardless of their type:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// All products created by the factory are guaranteed to have:</span>
+<span class="hljs-comment">// - id, type, name, brand, price, specifications, link</span>
+<span class="hljs-comment">// - getDescription() method</span>
+</code></pre>
+<h3 id="2-simplified-product-creation">2. Simplified Product Creation</h3>
+<p>The factory centralizes the logic for creating different types of products:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// Without factory:</span>
+<span class="hljs-keyword">let</span> product;
+<span class="hljs-keyword">if</span> (<span class="hljs-keyword">type</span> === <span class="hljs-string">&#x27;regulator&#x27;</span>) {
+  product = <span class="hljs-keyword">new</span> <span class="hljs-title class_">RegulatorProduct</span>(id, name, brand, price, specs, link);
+} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-keyword">type</span> === <span class="hljs-string">&#x27;bcd&#x27;</span>) {
+  product = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BCDProduct</span>(id, name, brand, price, specs, link);
+} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-keyword">type</span> === <span class="hljs-string">&#x27;fin&#x27;</span>) {
+  product = <span class="hljs-keyword">new</span> <span class="hljs-title class_">FinProduct</span>(id, name, brand, price, specs, link);
+}
+
+<span class="hljs-comment">// With factory:</span>
+<span class="hljs-keyword">const</span> product = factory.<span class="hljs-title function_">createProduct</span>(<span class="hljs-keyword">type</span>, id, name, brand, price, link, specs);
+</code></pre>
+<h3 id="3-decoupling">3. Decoupling</h3>
+<p>The factory pattern decouples the code that creates objects from the code that uses them:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// Component doesn&#x27;t need to know how to create products</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">ProductListScreen</span>(<span class="hljs-params"></span>) {
+  <span class="hljs-keyword">const</span> [products, setProducts] = useState&lt;<span class="hljs-title class_">Product</span>[]&gt;([]);
+  
+  <span class="hljs-title function_">useEffect</span>(<span class="hljs-function">() =&gt;</span> {
+    <span class="hljs-comment">// Component only knows about the Product interface,</span>
+    <span class="hljs-comment">// not how to create different product types</span>
+    <span class="hljs-keyword">async</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">fetchProducts</span>(<span class="hljs-params"></span>) {
+      <span class="hljs-keyword">const</span> fetchedProducts = <span class="hljs-keyword">await</span> productService.<span class="hljs-title function_">getProducts</span>();
+      <span class="hljs-title function_">setProducts</span>(fetchedProducts);
+    }
+    
+    <span class="hljs-title function_">fetchProducts</span>();
+  }, []);
+  
+  <span class="hljs-comment">// Render products...</span>
+}
+</code></pre>
+<h3 id="4-extensibility">4. Extensibility</h3>
+<p>Adding new product types doesn't require changing existing code:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// Adding a new product type is simple:</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MaskProduct</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Product</span> {
+  <span class="hljs-attr">id</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">brand</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">price</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">type</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">specifications</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">any</span>&gt;;
+  imageUrl?: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">link</span>: <span class="hljs-built_in">string</span>;
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">id: <span class="hljs-built_in">string</span>, name: <span class="hljs-built_in">string</span>, brand: <span class="hljs-built_in">string</span>, price: <span class="hljs-built_in">number</span>, specs: Record&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">any</span>&gt;, link: <span class="hljs-built_in">string</span></span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">id</span> = id;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">name</span> = name;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">brand</span> = brand;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">price</span> = price;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">type</span> = <span class="hljs-string">&#x27;mask&#x27;</span>;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">specifications</span> = specs;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">link</span> = link;
+  }
+
+  <span class="hljs-title function_">getDescription</span>(): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-string">`<span class="hljs-subst">${<span class="hljs-variable language_">this</span>.brand}</span> <span class="hljs-subst">${<span class="hljs-variable language_">this</span>.name}</span> - A clear view underwater`</span>;
+  }
+}
+</code></pre>
+<h2 id="factory-pattern-extensions">Factory Pattern Extensions</h2>
+<h3 id="enhanced-factory-with-type-specific-creation-methods">Enhanced Factory with Type-Specific Creation Methods</h3>
+<p>The application could be enhanced with a more sophisticated factory that has specific methods for each product type:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// Enhanced ProductFactory concept</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">EnhancedProductFactory</span> {
+  <span class="hljs-title function_">createRegulator</span>(
+    <span class="hljs-attr">id</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">brand</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">price</span>: <span class="hljs-built_in">number</span>,
+    <span class="hljs-attr">specifications</span>: {
+      temperature?: <span class="hljs-built_in">string</span>;
+      high_pressure_port?: <span class="hljs-built_in">number</span>;
+      low_pressure_port?: <span class="hljs-built_in">number</span>;
+      adjustable_airflow?: <span class="hljs-string">&#x27;YES&#x27;</span> | <span class="hljs-string">&#x27;NO&#x27;</span>;
+      <span class="hljs-comment">// Other regulator-specific specs</span>
+    },
+    <span class="hljs-attr">link</span>: <span class="hljs-built_in">string</span>,
+    imageUrl?: <span class="hljs-built_in">string</span>
+  ): <span class="hljs-title class_">RegulatorProduct</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RegulatorProduct</span>(id, name, brand, price, specifications, link);
+  }
+  
+  <span class="hljs-title function_">createBCD</span>(
+    <span class="hljs-attr">id</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">brand</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">price</span>: <span class="hljs-built_in">number</span>,
+    <span class="hljs-attr">specifications</span>: {
+      <span class="hljs-keyword">type</span>?: <span class="hljs-string">&#x27;Backplate&#x27;</span> | <span class="hljs-string">&#x27;Jacket&#x27;</span>;
+      weight_pocket?: <span class="hljs-string">&#x27;Yes&#x27;</span> | <span class="hljs-string">&#x27;No&#x27;</span>;
+      weight_kg?: <span class="hljs-built_in">number</span>;
+      <span class="hljs-comment">// Other BCD-specific specs</span>
+    },
+    <span class="hljs-attr">link</span>: <span class="hljs-built_in">string</span>,
+    imageUrl?: <span class="hljs-built_in">string</span>
+  ): <span class="hljs-title class_">BCDProduct</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BCDProduct</span>(id, name, brand, price, specifications, link);
+  }
+  
+  <span class="hljs-comment">// More type-specific methods...</span>
+  
+  <span class="hljs-comment">// Generic method that delegates to type-specific methods</span>
+  <span class="hljs-title function_">createProduct</span>(
+    <span class="hljs-attr">type</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">id</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">brand</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">price</span>: <span class="hljs-built_in">number</span>,
+    <span class="hljs-attr">link</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">specifications</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">any</span>&gt; = {},
+    imageUrl?: <span class="hljs-built_in">string</span>
+  ): <span class="hljs-title class_">Product</span> {
+    <span class="hljs-keyword">switch</span> (<span class="hljs-keyword">type</span>) {
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;regulator&#x27;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">createRegulator</span>(id, name, brand, price, specifications, link, imageUrl);
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;bcd&#x27;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">createBCD</span>(id, name, brand, price, specifications, link, imageUrl);
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;fin&#x27;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">createFin</span>(id, name, brand, price, specifications, link, imageUrl);
+      <span class="hljs-comment">// More cases...</span>
+      <span class="hljs-attr">default</span>:
+        <span class="hljs-comment">// Return a generic product</span>
+        <span class="hljs-keyword">return</span> {
+          id,
+          <span class="hljs-keyword">type</span>,
+          name,
+          brand,
+          price,
+          link,
+          specifications,
+          imageUrl,
+          <span class="hljs-attr">getDescription</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-string">`<span class="hljs-subst">${brand}</span> <span class="hljs-subst">${name}</span> - <span class="hljs-subst">${<span class="hljs-keyword">type</span>}</span>`</span>
+        };
+    }
+  }
+}
+</code></pre>
+<h2 id="integration-with-other-patterns">Integration with Other Patterns</h2>
+<h3 id="factory-and-visitor-integration">Factory and Visitor Integration</h3>
+<p>The Factory and Visitor patterns work together effectively:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// Creating products with factory and applying visitor</span>
+<span class="hljs-keyword">const</span> factory = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ProductFactory</span>();
+<span class="hljs-keyword">const</span> product = factory.<span class="hljs-title function_">createProduct</span>(
+  <span class="hljs-string">&#x27;regulator&#x27;</span>,
+  <span class="hljs-string">&#x27;1&#x27;</span>,
+  <span class="hljs-string">&#x27;Pro Regulator&#x27;</span>,
+  <span class="hljs-string">&#x27;ScubaPro&#x27;</span>,
+  <span class="hljs-number">499.99</span>,
+  <span class="hljs-string">&#x27;https://example.com&#x27;</span>,
+  { <span class="hljs-attr">qualityScore</span>: <span class="hljs-number">9</span> }
+);
+
+<span class="hljs-comment">// Converting to visitable product</span>
+<span class="hljs-keyword">const</span> visitableProduct = <span class="hljs-keyword">new</span> <span class="hljs-title class_">VisitableRegulatorProduct</span>(
+  product.<span class="hljs-property">id</span>,
+  product.<span class="hljs-property">name</span>,
+  product.<span class="hljs-property">brand</span>,
+  product.<span class="hljs-property">price</span>,
+  product.<span class="hljs-property">specifications</span>,
+  product.<span class="hljs-property">link</span>
+);
+
+<span class="hljs-comment">// Applying visitor</span>
+<span class="hljs-keyword">const</span> priceVisitor = <span class="hljs-keyword">new</span> <span class="hljs-title class_">PriceCalculatorVisitor</span>(<span class="hljs-string">&#x27;advanced&#x27;</span>);
+<span class="hljs-keyword">const</span> discountedPrice = visitableProduct.<span class="hljs-title function_">accept</span>(priceVisitor);
+</code></pre>
+<h3 id="factory-and-facade-integration">Factory and Facade Integration</h3>
+<p>The Facade pattern can leverage the Factory pattern internally:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// Service facade using factory to create products</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ServiceFacade</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">productFactory</span>: <span class="hljs-title class_">ProductFactory</span>;
+  
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"></span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">productFactory</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ProductFactory</span>();
+  }
+  
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">createNewProduct</span>(<span class="hljs-attr">data</span>: <span class="hljs-built_in">any</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">Product</span>&gt; {
+    <span class="hljs-comment">// Validate data</span>
+    <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">validateProductData</span>(data);
+    
+    <span class="hljs-comment">// Generate ID</span>
+    <span class="hljs-keyword">const</span> id = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">generateUniqueId</span>();
+    
+    <span class="hljs-comment">// Create product using factory</span>
+    <span class="hljs-keyword">const</span> product = <span class="hljs-variable language_">this</span>.<span class="hljs-property">productFactory</span>.<span class="hljs-title function_">createProduct</span>(
+      data.<span class="hljs-property">type</span>,
+      id,
+      data.<span class="hljs-property">name</span>,
+      data.<span class="hljs-property">brand</span>,
+      data.<span class="hljs-property">price</span>,
+      data.<span class="hljs-property">link</span>,
+      data.<span class="hljs-property">specifications</span>,
+      data.<span class="hljs-property">imageUrl</span>
+    );
+    
+    <span class="hljs-comment">// Save to repository</span>
+    <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">productRepository</span>.<span class="hljs-title function_">createProduct</span>(product);
+    
+    <span class="hljs-keyword">return</span> product;
+  }
+}
+</code></pre>
+<h2 id="testing-the-factory-pattern">Testing the Factory Pattern</h2>
+<p>Testing the Factory pattern is straightforward since it centralizes object creation:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// Example unit test for ProductFactory</span>
+<span class="hljs-title function_">test</span>(<span class="hljs-string">&#x27;creates regulator product with correct type&#x27;</span>, <span class="hljs-function">() =&gt;</span> {
+  <span class="hljs-comment">// Arrange</span>
+  <span class="hljs-keyword">const</span> factory = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ProductFactory</span>();
+  
+  <span class="hljs-comment">// Act</span>
+  <span class="hljs-keyword">const</span> product = factory.<span class="hljs-title function_">createProduct</span>(
+    <span class="hljs-string">&#x27;regulator&#x27;</span>,
+    <span class="hljs-string">&#x27;1&#x27;</span>,
+    <span class="hljs-string">&#x27;Test Regulator&#x27;</span>,
+    <span class="hljs-string">&#x27;Test Brand&#x27;</span>,
+    <span class="hljs-number">499.99</span>,
+    <span class="hljs-string">&#x27;https://example.com&#x27;</span>,
+    { <span class="hljs-attr">qualityScore</span>: <span class="hljs-number">9</span> }
+  );
+  
+  <span class="hljs-comment">// Assert</span>
+  <span class="hljs-title function_">expect</span>(product.<span class="hljs-property">type</span>).<span class="hljs-title function_">toBe</span>(<span class="hljs-string">&#x27;regulator&#x27;</span>);
+  <span class="hljs-title function_">expect</span>(product.<span class="hljs-property">name</span>).<span class="hljs-title function_">toBe</span>(<span class="hljs-string">&#x27;Test Regulator&#x27;</span>);
+  <span class="hljs-title function_">expect</span>(product.<span class="hljs-property">brand</span>).<span class="hljs-title function_">toBe</span>(<span class="hljs-string">&#x27;Test Brand&#x27;</span>);
+  <span class="hljs-title function_">expect</span>(product.<span class="hljs-property">price</span>).<span class="hljs-title function_">toBe</span>(<span class="hljs-number">499.99</span>);
+  <span class="hljs-title function_">expect</span>(product.<span class="hljs-title function_">getDescription</span>()).<span class="hljs-title function_">toContain</span>(<span class="hljs-string">&#x27;Test Regulator&#x27;</span>);
+  <span class="hljs-title function_">expect</span>(product.<span class="hljs-title function_">getDescription</span>()).<span class="hljs-title function_">toContain</span>(<span class="hljs-string">&#x27;Test Brand&#x27;</span>);
+});
+</code></pre>
+<h2 id="conclusion">Conclusion</h2>
+<p>The Factory pattern in ScubaDivingApp provides a robust and flexible way to create different types of product objects while ensuring they adhere to a consistent interface. This pattern enhances maintainability by centralizing object creation logic and supporting the Single Responsibility and Open/Closed principles.</p>
+<p>The implementation demonstrates how a relatively simple Factory pattern can support a wide range of use cases across the application, from data loading to rendering components. It also shows how the Factory pattern can effectively integrate with other patterns like Visitor and Facade to create a cohesive architectural approach.</p>
+<p>By using the Factory pattern, the application can more easily adapt to new product types and changing requirements without requiring extensive modifications to existing code.</p>
+
+            <script async src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+            
+        </body>
+        </html>

@@ -23,7 +23,7 @@ Your story should outline how the initial app design started with simple product
 - "The price scraping functionality required different logic for each competitor website, yet we needed to keep this complexity hidden from the UI components."
 
 #### Code to Showcase:
-- `src/patterns/factory/ProductFactory.ts` - How the factory method creates different product objects without directly instantiating them
+- `src/patterns/factory/ProductFactory.ts` - How the factory method creates differeπnt product objects without directly instantiating them
 - `src/patterns/facade/ServiceFacade.ts` - How it provides a simple interface to the complex system of services
 
 ### Software Engineering Principles

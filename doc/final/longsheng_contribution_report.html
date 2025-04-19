@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Longsheng&apos;s Individual Contribution Report</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="longshengs-individual-contribution-report">Longsheng's Individual Contribution Report</h1>
+<h2 id="1-overview-of-individual-contributions">1. Overview of Individual Contributions</h2>
+<p>As the architecture lead for the ScubaDivingSales Assistant application, my primary contributions focused on designing and implementing the overall architectural framework and the price scraping functionality. I established the foundational design patterns (Factory Method, Visitor, and Façade) that enabled the application to evolve from a simple regulator product viewer to a comprehensive multi-product sales assistant tool. I also developed the price scraping functionality that gives sales representatives competitive pricing information in real-time.</p>
+<h2 id="2-major-design-choices-and-decisions">2. Major Design Choices and Decisions</h2>
+<h3 id="21-evolution-from-simple-to-complex-architecture">2.1 Evolution from Simple to Complex Architecture</h3>
+<p>The ScubaDivingSales Assistant app began with a straightforward requirement: display information about regulator products to assist sales representatives. Initially, a simple, direct approach would have sufficed. However, anticipating future growth, I made a strategic decision to implement a scalable architecture based on established design patterns.</p>
+<p>This foresight proved valuable when the requirements expanded to include multiple product types (BCDs and fins), each with different specifications and behaviors. Rather than refactoring the entire codebase, our architecture accommodated these changes with minimal disruption.</p>
+<p>The evolution occurred in three distinct phases:</p>
+<p><strong>Phase 1: Single Product Type (Regulators)</strong></p>
+<ul>
+<li>Initial implementation supported only regulator products</li>
+<li>Basic display of product information and simple price comparisons</li>
+<li>Limited product operations (display and basic filtering)</li>
+</ul>
+<p><strong>Phase 2: Multiple Product Types (Regulators + BCDs)</strong></p>
+<ul>
+<li>Expanded to support BCD products with different specifications</li>
+<li>Introduced Factory Method pattern to create different product types</li>
+<li>Implemented Visitor pattern to perform operations based on product type</li>
+</ul>
+<p><strong>Phase 3: Comprehensive Product Support (Regulators + BCDs + Fins)</strong></p>
+<ul>
+<li>Added support for fins and potential future product categories</li>
+<li>Enhanced operations with user experience levels (beginner/intermediate/advanced)</li>
+<li>Implemented Façade pattern to simplify access to increasingly complex services</li>
+</ul>
+<h3 id="22-design-pattern-selection-rationale">2.2 Design Pattern Selection Rationale</h3>
+<p>The growing complexity of the application necessitated structured design approaches. I carefully selected three complementary design patterns to address specific architectural challenges:</p>
+<h4 id="factory-method-pattern">Factory Method Pattern</h4>
+<p><strong>Problem:</strong> How to create different product objects without specifying their concrete classes in the client code?</p>
+<p><strong>Solution:</strong> The Factory Method pattern enabled us to create products based on type without exposing object creation logic.</p>
+<p><strong>Implementation Decision:</strong> I implemented <code>ProductFactory</code> to encapsulate the product creation process, allowing the app to evolve from a single product type to multiple product types without changing client code.</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// Factory Method Pattern implementation</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ProductFactory</span> {
+  <span class="hljs-title function_">createProduct</span>(
+    <span class="hljs-attr">type</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">id</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">brand</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">price</span>: <span class="hljs-built_in">number</span>,
+    <span class="hljs-attr">link</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">specifications</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">any</span>&gt; = {},
+    imageUrl?: <span class="hljs-built_in">string</span>
+  ): <span class="hljs-title class_">Product</span> {
+    <span class="hljs-keyword">return</span> {
+      id,
+      <span class="hljs-keyword">type</span>,
+      name,
+      brand,
+      price,
+      link,
+      specifications,
+      imageUrl,
+      <span class="hljs-attr">getDescription</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-string">`<span class="hljs-subst">${brand}</span> <span class="hljs-subst">${name}</span> - <span class="hljs-subst">${<span class="hljs-keyword">type</span>}</span>`</span>
+    };
+  }
+}
+</code></pre>
+<h4 id="visitor-pattern">Visitor Pattern</h4>
+<p><strong>Problem:</strong> How to add operations to product objects without modifying their classes?</p>
+<p><strong>Solution:</strong> The Visitor pattern allowed us to define operations on products based on their type without changing product classes.</p>
+<p><strong>Implementation Decision:</strong> I implemented the Visitor pattern to enable operations like price calculations based on diver experience levels and product recommendations without modifying the product classes themselves.</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// Visitor Pattern implementation</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">ProductVisitor</span> {
+  <span class="hljs-title function_">visitRegulator</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">RegulatorProduct</span>): <span class="hljs-built_in">any</span>;
+  <span class="hljs-title function_">visitBCD</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">BCDProduct</span>): <span class="hljs-built_in">any</span>;
+  <span class="hljs-title function_">visitFin</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">FinProduct</span>): <span class="hljs-built_in">any</span>;
+}
+
+<span class="hljs-comment">// Concrete visitor example</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">PriceCalculatorVisitor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">ProductVisitor</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">experienceLevel</span>: <span class="hljs-string">&#x27;beginner&#x27;</span> | <span class="hljs-string">&#x27;intermediate&#x27;</span> | <span class="hljs-string">&#x27;advanced&#x27;</span>;
+  
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">experienceLevel: <span class="hljs-string">&#x27;beginner&#x27;</span> | <span class="hljs-string">&#x27;intermediate&#x27;</span> | <span class="hljs-string">&#x27;advanced&#x27;</span></span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">experienceLevel</span> = experienceLevel;
+  }
+  
+  <span class="hljs-title function_">visitRegulator</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">RegulatorProduct</span>): <span class="hljs-built_in">number</span> {
+    <span class="hljs-comment">// Different discount strategies based on experience level</span>
+    <span class="hljs-keyword">let</span> discount = <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">experienceLevel</span> === <span class="hljs-string">&#x27;advanced&#x27;</span>) {
+      discount = <span class="hljs-number">0.05</span>; <span class="hljs-comment">// 5% discount for advanced divers on regulators</span>
+    }
+    <span class="hljs-keyword">return</span> product.<span class="hljs-property">price</span> * (<span class="hljs-number">1</span> - discount);
+  }
+  
+  <span class="hljs-comment">// Other visit methods...</span>
+}
+</code></pre>
+<h4 id="façade-pattern">Façade Pattern</h4>
+<p><strong>Problem:</strong> How to provide a simple interface to a complex subsystem with multiple services?</p>
+<p><strong>Solution:</strong> The Façade pattern provided a unified interface to complex subsystems like price scraping and Firebase data access.</p>
+<p><strong>Implementation Decision:</strong> I implemented <code>ServiceFacade</code> to hide the complexity of interacting with multiple services, making it easier for UI components to access functionality without understanding the underlying implementation details.</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// Façade Pattern implementation</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ServiceFacade</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-attr">instance</span>: <span class="hljs-title class_">ServiceFacade</span>;
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">firebaseService</span>: <span class="hljs-title class_">IFirebaseService</span>;
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">productRepository</span>: <span class="hljs-title class_">IProductRepository</span>;
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">realTimePriceScraperService</span>: <span class="hljs-title class_">IPriceScraperService</span>;
+  
+  <span class="hljs-comment">// Simplified method example</span>
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">fetchRealTimeCompetitorPrices</span>(<span class="hljs-attr">productId</span>: <span class="hljs-built_in">string</span>): <span class="hljs-title class_">Promise</span>&lt;{
+    <span class="hljs-attr">product</span>: <span class="hljs-title class_">Product</span>;
+    <span class="hljs-attr">competitorPrices</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">CompetitorPrice</span>&gt;;
+    <span class="hljs-attr">isFetching</span>: <span class="hljs-built_in">boolean</span>;
+  }&gt; {
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-comment">// This hides complex interactions between multiple services</span>
+      <span class="hljs-keyword">const</span> result = {
+        <span class="hljs-attr">product</span>: <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">productRepository</span>.<span class="hljs-title function_">getProduct</span>(productId),
+        <span class="hljs-attr">competitorPrices</span>: {},
+        <span class="hljs-attr">isFetching</span>: <span class="hljs-literal">true</span>
+      };
+      
+      <span class="hljs-comment">// Get cached prices first for immediate display</span>
+      <span class="hljs-keyword">const</span> cachedPrices = <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">realTimePriceScraperService</span>.<span class="hljs-title function_">getLastFetchedPrices</span>(productId);
+      <span class="hljs-keyword">if</span> (cachedPrices) {
+        result.<span class="hljs-property">competitorPrices</span> = cachedPrices;
+      }
+      
+      <span class="hljs-comment">// Start async fetch for new prices</span>
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">realTimePriceScraperService</span>
+        .<span class="hljs-title function_">fetchCompetitorPrices</span>(
+          productId, 
+          result.<span class="hljs-property">product</span>.<span class="hljs-property">name</span>, 
+          result.<span class="hljs-property">product</span>.<span class="hljs-property">brand</span>
+        )
+        .<span class="hljs-title function_">then</span>(<span class="hljs-function"><span class="hljs-params">freshPrices</span> =&gt;</span> {
+          <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&#x27;Fetched fresh competitor prices:&#x27;</span>, freshPrices);
+        })
+        .<span class="hljs-title function_">catch</span>(<span class="hljs-function"><span class="hljs-params">error</span> =&gt;</span> {
+          <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error fetching real-time competitor prices:&#x27;</span>, error);
+        });
+      
+      <span class="hljs-keyword">return</span> result;
+    } <span class="hljs-keyword">catch</span> (error) {
+      <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error starting real-time price comparison:&#x27;</span>, error);
+      <span class="hljs-keyword">throw</span> error;
+    }
+  }
+}
+</code></pre>
+<h2 id="3-architecture-diagram">3. Architecture Diagram</h2>
+<pre><code>+----------------+     +-----------------+     +---------------+     +------------------+
+|   FRONTEND     |     |  SERVICE FACADE |     |  SERVICES    |     | EXTERNAL SYSTEMS |
+|                |     |                 |     |              |     |                  |
++----------------+     +-----------------+     +---------------+     +------------------+
+         |                     |                      |                       |
+         v                     v                      v                       v
++----------------+     +-----------------+     +---------------+     +------------------+
+| ProductCard    |     |                 |     | PriceScraper  |     | Competitor      |
+| ProductList    |----&gt;| ServiceFacade   |----&gt;| Service       |----&gt;| Websites        |
+| Comparison     |     | (Façade Pattern)|     |               |     |                  |
++----------------+     +-----------------+     +---------------+     +------------------+
+         |                     |                      |
+         |                     v                      v
+         |              +-----------------+     +---------------+
+         |              | ProductFactory  |     | FirebaseService|
+         +-------------&gt;| (Factory Method)|     | (Façade Pattern)|
+                        +-----------------+     +---------------+
+                                |                      |
+                                v                      v
+                        +-----------------+     +---------------+
+                        | Product Objects |     | Firestore DB |
+                        | with Visitors   |     |              |
+                        +-----------------+     +---------------+
+</code></pre>
+<h2 id="4-software-engineering-principles-applied">4. Software Engineering Principles Applied</h2>
+<h3 id="41-solid-principles-in-price-scraping-implementation">4.1 SOLID Principles in Price Scraping Implementation</h3>
+<p>The price scraping functionality demonstrates careful application of SOLID principles:</p>
+<h4 id="single-responsibility-principle-srp">Single Responsibility Principle (SRP)</h4>
+<p>Each class in the price scraping implementation has a single, well-defined responsibility:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// PriceScraperService.ts - Responsible ONLY for fetching competitor prices</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">PriceScraperService</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">IPriceScraperService</span> {
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">fetchCompetitorPrices</span>(
+    <span class="hljs-attr">productId</span>: <span class="hljs-built_in">string</span>, 
+    <span class="hljs-attr">productModel</span>: <span class="hljs-built_in">string</span>, 
+    <span class="hljs-attr">productBrand</span>: <span class="hljs-built_in">string</span>
+  ): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">CompetitorPrice</span>&gt;&gt; {
+    <span class="hljs-comment">// Implementation details...</span>
+  }
+  
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">getLastFetchedPrices</span>(<span class="hljs-attr">productId</span>: <span class="hljs-built_in">string</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">CompetitorPrice</span>&gt; | <span class="hljs-literal">null</span>&gt; {
+    <span class="hljs-comment">// Implementation details...</span>
+  }
+  
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">async</span> <span class="hljs-title function_">cachePrices</span>(<span class="hljs-attr">productId</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">prices</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">CompetitorPrice</span>&gt;): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-built_in">void</span>&gt; {
+    <span class="hljs-comment">// Implementation details...</span>
+  }
+}
+
+<span class="hljs-comment">// ScrapedProductImageService.ts - Responsible ONLY for image handling</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ScrapedProductImageService</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">IProductImageService</span> {
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">getProductImageUrl</span>(<span class="hljs-attr">productId</span>: <span class="hljs-built_in">string</span>, productUrl?: <span class="hljs-built_in">string</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-built_in">string</span> | <span class="hljs-literal">null</span>&gt; {
+    <span class="hljs-comment">// Implementation details...</span>
+  }
+  
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">getProductImageUri</span>(<span class="hljs-attr">productId</span>: <span class="hljs-built_in">string</span>, productUrl?: <span class="hljs-built_in">string</span>, productType?: <span class="hljs-built_in">string</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-built_in">string</span> | <span class="hljs-literal">null</span>&gt; {
+    <span class="hljs-comment">// Implementation details...</span>
+  }
+}
+</code></pre>
+<p>This separation ensures that each class has a focused purpose, making the codebase more maintainable and reducing the impact of changes.</p>
+<h4 id="openclosed-principle-ocp">Open/Closed Principle (OCP)</h4>
+<p>The price scraping implementation is designed to be extended without modification through well-defined interfaces:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// IPriceScraperService interface allows new implementations without changing clients</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">IPriceScraperService</span> {
+  <span class="hljs-title function_">fetchCompetitorPrices</span>(
+    <span class="hljs-attr">productId</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">productModel</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">productBrand</span>: <span class="hljs-built_in">string</span>
+  ): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">CompetitorPrice</span>&gt;&gt;;
+  
+  <span class="hljs-title function_">getLastFetchedPrices</span>(<span class="hljs-attr">productId</span>: <span class="hljs-built_in">string</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">CompetitorPrice</span>&gt; | <span class="hljs-literal">null</span>&gt;;
+}
+
+<span class="hljs-comment">// New implementation added without changing existing code</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MultiPlatformPriceScraperService</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">IPriceScraperService</span> {
+  <span class="hljs-comment">// Implementation that supports multiple platforms</span>
+}
+</code></pre>
+<p>This design allowed us to add support for new competitor websites without modifying existing code, demonstrating the OCP principle in action.</p>
+<h4 id="liskov-substitution-principle-lsp">Liskov Substitution Principle (LSP)</h4>
+<p>Different implementations of the price scraper interface can be substituted without affecting functionality:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// ServiceFacade can use any IPriceScraperService implementation</span>
+<span class="hljs-keyword">async</span> <span class="hljs-title function_">fetchCompetitorPrices</span>(
+  <span class="hljs-attr">productId</span>: <span class="hljs-built_in">string</span>,
+  <span class="hljs-attr">productModel</span>: <span class="hljs-built_in">string</span>,
+  <span class="hljs-attr">productBrand</span>: <span class="hljs-built_in">string</span>
+): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">CompetitorPrice</span>&gt;&gt; {
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-comment">// Use the multi-platform service as the primary implementation</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">multiPlatformPriceScraperService</span>.<span class="hljs-title function_">fetchCompetitorPrices</span>(
+      productId,
+      productModel,
+      productBrand
+    );
+  } <span class="hljs-keyword">catch</span> (error) {
+    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error fetching competitor prices with multi-platform service:&#x27;</span>, error);
+    
+    <span class="hljs-comment">// Fall back to the original implementation if the new one fails</span>
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">realTimePriceScraperService</span>.<span class="hljs-title function_">fetchCompetitorPrices</span>(
+        productId,
+        productModel,
+        productBrand
+      );
+    } <span class="hljs-keyword">catch</span> (fallbackError) {
+      <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error fetching competitor prices with fallback service:&#x27;</span>, fallbackError);
+      <span class="hljs-keyword">throw</span> fallbackError;
+    }
+  }
+}
+</code></pre>
+<p>This demonstrates LSP by showing how different implementations can be used interchangeably, with proper fallback mechanisms when one implementation fails.</p>
+<h3 id="42-façade-pattern-implementation">4.2 Façade Pattern Implementation</h3>
+<p>The ServiceFacade class exemplifies the Façade pattern by providing a unified interface to multiple complex subsystems:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// ServiceFacade.ts</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ServiceFacade</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-attr">instance</span>: <span class="hljs-title class_">ServiceFacade</span>;
+  
+  <span class="hljs-comment">// Complex subsystems</span>
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">firebaseService</span>: <span class="hljs-title class_">IFirebaseService</span>;
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">productRepository</span>: <span class="hljs-title class_">IProductRepository</span>;
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">realTimePriceScraperService</span>: <span class="hljs-title class_">IPriceScraperService</span>;
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">multiPlatformPriceScraperService</span>: <span class="hljs-title class_">IPriceScraperService</span>;
+  
+  <span class="hljs-comment">// Simple interface for product retrieval with price comparison</span>
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">getProductWithPriceComparison</span>(<span class="hljs-attr">productId</span>: <span class="hljs-built_in">string</span>): <span class="hljs-title class_">Promise</span>&lt;{
+    <span class="hljs-attr">product</span>: <span class="hljs-title class_">Product</span>;
+    <span class="hljs-attr">competitorPrices</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">number</span>&gt;;
+  }&gt; {
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-keyword">const</span> product = <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">productRepository</span>.<span class="hljs-title function_">getProduct</span>(productId);
+      <span class="hljs-keyword">const</span> cachedPrices = <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">realTimePriceScraperService</span>.<span class="hljs-title function_">getLastFetchedPrices</span>(productId);
+      
+      <span class="hljs-keyword">const</span> <span class="hljs-attr">competitorPrices</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">number</span>&gt; = {};
+      
+      <span class="hljs-keyword">if</span> (cachedPrices) {
+        <span class="hljs-title class_">Object</span>.<span class="hljs-title function_">entries</span>(cachedPrices).<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">[competitor, data]</span>) =&gt;</span> {
+          competitorPrices[competitor] = data.<span class="hljs-property">price</span>;
+        });
+      } <span class="hljs-keyword">else</span> {
+        <span class="hljs-comment">// Fallback to mock prices if no cached data</span>
+        competitorPrices[<span class="hljs-string">&#x27;Competitor A&#x27;</span>] = product.<span class="hljs-property">price</span> * <span class="hljs-number">1.1</span>;
+        competitorPrices[<span class="hljs-string">&#x27;Competitor B&#x27;</span>] = product.<span class="hljs-property">price</span> * <span class="hljs-number">0.95</span>;
+        competitorPrices[<span class="hljs-string">&#x27;Competitor C&#x27;</span>] = product.<span class="hljs-property">price</span> * <span class="hljs-number">1.05</span>;
+      }
+
+      <span class="hljs-keyword">return</span> {
+        product,
+        competitorPrices,
+      };
+    } <span class="hljs-keyword">catch</span> (error) {
+      <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error getting product with price comparison:&#x27;</span>, error);
+      <span class="hljs-keyword">throw</span> error;
+    }
+  }
+}
+</code></pre>
+<p>Key implementation points:</p>
+<ul>
+<li>Hides the complexity of interacting with multiple services</li>
+<li>Provides simple, unified methods for common operations</li>
+<li>Handles errors and fallback mechanisms</li>
+<li>Shields UI components from implementation details</li>
+</ul>
+<h2 id="5-notable-features-implemented">5. Notable Features Implemented</h2>
+<p>The key features I implemented include:</p>
+<ol>
+<li>
+<p><strong>Real-time Competitor Price Scraping</strong>: Developed functionality to fetch and display prices from competitor websites, giving sales representatives competitive information.</p>
+</li>
+<li>
+<p><strong>Product Image Extraction</strong>: Implemented a system to extract product images from competitor websites to enhance product displays.</p>
+</li>
+<li>
+<p><strong>Multi-platform Price Comparison</strong>: Extended the price scraping functionality to support multiple e-commerce platforms with a consistent interface.</p>
+</li>
+</ol>
+<h2 id="6-testing-approach">6. Testing Approach</h2>
+<p>I implemented a comprehensive testing strategy for the architecture and price scraping components:</p>
+<ol>
+<li>
+<p><strong>Unit Testing</strong>: Each design pattern implementation was tested in isolation to ensure correct behavior.</p>
+</li>
+<li>
+<p><strong>Integration Testing</strong>: Verified that different components work together correctly, particularly the interactions between the ServiceFacade and the various services.</p>
+</li>
+<li>
+<p><strong>Mock Testing</strong>: Used mocked data to test the price scraping functionality without making actual network requests to competitor websites.</p>
+</li>
+</ol>
+<p>The test coverage focuses on the core business logic, especially the Factory Method, Visitor, and Façade pattern implementations, ensuring that they adhere to SOLID principles.</p>
+
+            <script async src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+            
+        </body>
+        </html>

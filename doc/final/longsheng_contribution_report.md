@@ -121,6 +121,7 @@ export class ServiceFacade {
   private firebaseService: IFirebaseService;
   private productRepository: IProductRepository;
   private realTimePriceScraperService: IPriceScraperService;
+  private multiPlatformPriceScraperService: IPriceScraperService;
   
   // Simplified method example
   async fetchRealTimeCompetitorPrices(productId: string): Promise<{
@@ -204,38 +205,69 @@ The price scraping functionality demonstrates careful application of SOLID princ
 Each class in the price scraping implementation has a single, well-defined responsibility:
 
 ```typescript
-// PriceScraperService.ts - Responsible ONLY for fetching competitor prices
+// PriceScraperService.ts - Responsible ONLY for fetching and caching competitor prices
 export class PriceScraperService implements IPriceScraperService {
   async fetchCompetitorPrices(
     productId: string, 
     productModel: string, 
     productBrand: string
   ): Promise<Record<string, CompetitorPrice>> {
-    // Implementation details...
+    // Implementation for fetching prices...
   }
   
   async getLastFetchedPrices(productId: string): Promise<Record<string, CompetitorPrice> | null> {
-    // Implementation details...
+    // Retrieves cached prices from AsyncStorage...
   }
   
   private async cachePrices(productId: string, prices: Record<string, CompetitorPrice>): Promise<void> {
-    // Implementation details...
+    // Caches price data using AsyncStorage...
   }
 }
 
-// ScrapedProductImageService.ts - Responsible ONLY for image handling
-export class ScrapedProductImageService implements IProductImageService {
-  async getProductImageUrl(productId: string, productUrl?: string): Promise<string | null> {
-    // Implementation details...
+// MultiPlatformPriceScraperService.ts - Responsible ONLY for coordinating price extraction across platforms
+export class MultiPlatformPriceScraperService implements IPriceScraperService {
+  private urlRepository: IProductUrlRepository;
+  private strategyRegistry: PlatformStrategyRegistry;
+  
+  async fetchCompetitorPrices(
+    productId: string, 
+    productModel: string, 
+    productBrand: string
+  ): Promise<Record<string, CompetitorPrice>> {
+    // Coordinates extraction using appropriate strategies for each URL...
+  }
+}
+
+// LazadaExtractionStrategy.ts - Responsible ONLY for extracting from a specific platform
+export class LazadaExtractionStrategy implements IPlatformExtractionStrategy {
+  getPlatformName(): string {
+    return 'Lazada';
   }
   
-  async getProductImageUri(productId: string, productUrl?: string, productType?: string): Promise<string | null> {
-    // Implementation details...
+  canHandleUrl(url: string): boolean {
+    return url.includes('lazada.sg');
+  }
+  
+  async extractPrice(url: string): Promise<string | null> {
+    // Platform-specific extraction logic...
+  }
+}
+
+// PlatformStrategyRegistry.ts - Responsible ONLY for managing extraction strategies
+export class PlatformStrategyRegistry {
+  private strategies: IPlatformExtractionStrategy[] = [];
+  
+  public registerStrategy(strategy: IPlatformExtractionStrategy): void {
+    // Registers new extraction strategies...
+  }
+  
+  public getStrategyForUrl(url: string): IPlatformExtractionStrategy | null {
+    // Returns appropriate strategy for a URL...
   }
 }
 ```
 
-This separation ensures that each class has a focused purpose, making the codebase more maintainable and reducing the impact of changes.
+This separation ensures that each class has a focused purpose, making the codebase more maintainable and reducing the impact of changes. Changes to one platform's extraction logic have no effect on other components, demonstrating excellent adherence to SRP.
 
 #### Open/Closed Principle (OCP)
 
@@ -263,41 +295,42 @@ This design allowed us to add support for new competitor websites without modify
 
 #### Liskov Substitution Principle (LSP)
 
-Different implementations of the price scraper interface can be substituted without affecting functionality:
+The price scraping functionality demonstrates LSP through interchangeable service implementations:
 
 ```typescript
-// ServiceFacade can use any IPriceScraperService implementation
-async fetchCompetitorPrices(
-  productId: string,
-  productModel: string,
-  productBrand: string
-): Promise<Record<string, CompetitorPrice>> {
+// The IPriceScraperService interface defines behavior contract that all scrapers must follow
+export interface IPriceScraperService {
+  fetchCompetitorPrices(productId: string, productModel: string, productBrand: string): 
+    Promise<Record<string, CompetitorPrice>>;
+  getLastFetchedPrices(productId: string): Promise<Record<string, CompetitorPrice> | null>;
+}
+
+// ServiceFacade can use ANY implementation of IPriceScraperService
+// This LSP adherence allows seamless switching between implementations
+async fetchCompetitorPrices(productId: string, productModel: string, productBrand: string): Promise<Record<string, CompetitorPrice>> {
   try {
-    // Use the multi-platform service as the primary implementation
+    // First try the multi-platform implementation
     return await this.multiPlatformPriceScraperService.fetchCompetitorPrices(
-      productId,
-      productModel,
-      productBrand
+      productId, productModel, productBrand
     );
   } catch (error) {
-    console.error('Error fetching competitor prices with multi-platform service:', error);
+    console.error('Multi-platform service failed, falling back to basic scraper:', error);
     
-    // Fall back to the original implementation if the new one fails
-    try {
-      return await this.realTimePriceScraperService.fetchCompetitorPrices(
-        productId,
-        productModel,
-        productBrand
-      );
-    } catch (fallbackError) {
-      console.error('Error fetching competitor prices with fallback service:', fallbackError);
-      throw fallbackError;
-    }
+    // Fallback to basic implementation - LSP makes this substitution possible
+    return await this.realTimePriceScraperService.fetchCompetitorPrices(
+      productId, productModel, productBrand
+    );
   }
 }
 ```
 
-This demonstrates LSP by showing how different implementations can be used interchangeably, with proper fallback mechanisms when one implementation fails.
+This LSP implementation creates significant advantages:
+- **Resilience:** The system continues working even when one scraping method fails
+- **Adaptability:** New scraping implementations can be introduced without changing client code
+- **Maintainability:** Each scraper implementation can evolve independently
+- **Testing:** Scrapers can be mocked or substituted easily during testing
+
+LSP allowed you to implement a robust multi-level fallback strategy, crucial for reliable price scraping in an environment where external websites frequently change.
 
 ### 4.2 Façade Pattern Implementation
 

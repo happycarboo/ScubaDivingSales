@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Individual Contributions Guide</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="individual-contributions-guide">Individual Contributions Guide</h1>
+<p>This guide outlines the structure and content recommendations for each team member's individual contribution section in the final report.</p>
+<h2 id="1-longsheng-architecture-and-price-scraping">1. Longsheng: Architecture and Price Scraping</h2>
+<h3 id="major-design-choices-and-decisions">Major Design Choices and Decisions</h3>
+<h4 id="narrative-focus-evolution-from-simple-to-complex-architecture">Narrative Focus: Evolution from Simple to Complex Architecture</h4>
+<p>Your story should outline how the initial app design started with simple product types (just regulators) but needed to expand to accommodate multiple product types (BCDs, fins) as the project progressed. This evolution necessitated the adoption of design patterns to maintain scalability and maintainability.</p>
+<p><strong>Recommended Flow:</strong></p>
+<ol>
+<li><strong>Initial Challenge</strong>: Begin by explaining how the sales team needed a simple app to display regulator product information and competitor prices.</li>
+<li><strong>Expanding Requirements</strong>: Discuss how requirements expanded to include multiple product types, each with different specifications and behaviors.</li>
+<li><strong>Design Pattern Selection</strong>: Explain why you chose the three design patterns:
+<ul>
+<li><strong>Factory Method</strong>: Instead of making objects directly, you call a special &quot;factory&quot; method that decides which object to create. Show how this helped create different types of diving products.</li>
+<li><strong>Visitor</strong>: Let you add new operations to a bunch of objects without changing them. You send a &quot;visitor&quot; through each object to do the work. Show how this enabled different operations on products.</li>
+<li><strong>Façade</strong>: Give users one simple interface (a &quot;front door&quot;) to a big, messy system. The façade hides all the inside work. Show how this simplified complex service interactions.</li>
+</ul>
+</li>
+</ol>
+<p><strong>Sample Narrative Points:</strong></p>
+<ul>
+<li>&quot;As requirements expanded from a single product type to multiple diving equipment categories, we needed a flexible way to create and interact with different product types without extensive code duplication.&quot;</li>
+<li>&quot;The price scraping functionality required different logic for each competitor website, yet we needed to keep this complexity hidden from the UI components.&quot;</li>
+</ul>
+<h4 id="code-to-showcase">Code to Showcase:</h4>
+<ul>
+<li><code>src/patterns/factory/ProductFactory.ts</code> - How the factory method creates differeπnt product objects without directly instantiating them</li>
+<li><code>src/patterns/facade/ServiceFacade.ts</code> - How it provides a simple interface to the complex system of services</li>
+</ul>
+<h3 id="software-engineering-principles">Software Engineering Principles</h3>
+<h4 id="solid-principles-in-price-scraping-implementation">SOLID Principles in Price Scraping Implementation</h4>
+<p>Focus on demonstrating how the price scraping functionality adheres to SOLID principles:</p>
+<ol>
+<li>
+<p><strong>SRP (Single Responsibility)</strong>: Each class or module should do only one job</p>
+<ul>
+<li><code>src/services/scraper/PriceScraperService.ts</code> - Handles price data retrieval only</li>
+<li><code>src/services/scraper/ScrapedProductImageService.ts</code> - Handles image extraction only</li>
+</ul>
+</li>
+<li>
+<p><strong>OCP (Open-Closed)</strong>: Code should let you add new features without changing old code</p>
+<ul>
+<li><code>src/services/scraper/interfaces/IPriceScraperService.ts</code> - Interface that allows extending functionality without modifying existing code</li>
+<li>Show how new competitor websites can be added without changing core scraping logic</li>
+</ul>
+</li>
+<li>
+<p><strong>LSP (Liskov Substitution)</strong>: You can swap in any subclass for its parent and the program still works</p>
+<ul>
+<li>Demonstrate how different implementations of the scraper service can be substituted without breaking functionality</li>
+<li><code>MultiPlatformPriceScraperService.ts</code> can be substituted for the original <code>PriceScraperService.ts</code></li>
+</ul>
+</li>
+</ol>
+<h4 id="design-pattern-implementation---façade-pattern">Design Pattern Implementation - Façade Pattern</h4>
+<p><strong>Key Code Example</strong>:</p>
+<ul>
+<li><code>src/patterns/facade/ServiceFacade.ts</code> - Methods like <code>fetchRealTimeCompetitorPrices</code> that hide complex interactions</li>
+</ul>
+<p><strong>Key Points to Highlight</strong>:</p>
+<ul>
+<li>How the Façade pattern provides a simple interface to complex backend services</li>
+<li>Error handling and fallback mechanisms in the Façade</li>
+<li>How the pattern shields UI components from implementation details</li>
+</ul>
+<h2 id="2-shimin-frontend-implementation">2. Shimin: Frontend Implementation</h2>
+<h3 id="major-design-choices-and-decisions-1">Major Design Choices and Decisions</h3>
+<h4 id="narrative-focus-creating-an-adaptable-and-maintainable-ui">Narrative Focus: Creating an Adaptable and Maintainable UI</h4>
+<p>Your story should center on how the frontend needed to display and interact with different product types, each with unique characteristics, while maintaining a consistent user experience.</p>
+<p><strong>Recommended Flow:</strong></p>
+<ol>
+<li><strong>Initial UI Challenge</strong>: Start with how the app needed to display different product types with varied specifications.</li>
+<li><strong>Component Structure Decisions</strong>: Explain why a component-based architecture was chosen.</li>
+<li><strong>Design Pattern Selection</strong>: Focus on the Visitor pattern for frontend operations:
+<ul>
+<li><strong>Visitor Pattern</strong>: Let you add new operations to a bunch of objects without changing them. Show how this allowed different UI behaviors for each product type.</li>
+</ul>
+</li>
+</ol>
+<p><strong>Sample Narrative Points:</strong></p>
+<ul>
+<li>&quot;As the number of product types grew, we faced challenges in creating reusable yet specialized UI components that could handle each type's unique characteristics.&quot;</li>
+<li>&quot;We needed a way to perform different operations on products based on user experience level without cluttering the product classes themselves.&quot;</li>
+</ul>
+<h4 id="code-to-showcase-1">Code to Showcase:</h4>
+<ul>
+<li><code>src/components/ProductCard.tsx</code> and <code>src/components/ProductList.tsx</code> - How they work with different product types</li>
+<li>Implementation of the Visitor pattern in UI components</li>
+</ul>
+<h3 id="software-engineering-principles-1">Software Engineering Principles</h3>
+<h4 id="solid-principles-in-frontend-implementation">SOLID Principles in Frontend Implementation</h4>
+<p>Focus on showing how the frontend adheres to SOLID principles:</p>
+<ol>
+<li>
+<p><strong>ISP (Interface Segregation)</strong>: Don't force parts to use methods they don't need</p>
+<ul>
+<li>Component props interfaces that are small and focused</li>
+<li>How components use only the data they need</li>
+</ul>
+</li>
+<li>
+<p><strong>DIP (Dependency Inversion)</strong>: High-level and low-level parts should both rely on simple interfaces, not on each other directly</p>
+<ul>
+<li>How UI components depend on abstractions (interfaces) rather than concrete implementations</li>
+<li>Use of the ServiceFacade to access backend functionality</li>
+</ul>
+</li>
+</ol>
+<h4 id="design-pattern-implementation---visitor-pattern">Design Pattern Implementation - Visitor Pattern</h4>
+<p><strong>Key Code Example</strong>:</p>
+<ul>
+<li><code>src/patterns/visitor/ProductVisitor.ts</code> - How it's used in UI components for different operations based on product type</li>
+</ul>
+<p><strong>Key Points to Highlight</strong>:</p>
+<ul>
+<li>How the Visitor pattern enables different UI behaviors for each product type</li>
+<li>Implementation of specialized visitors like <code>PriceCalculatorVisitor</code> for different user experience levels</li>
+</ul>
+<h2 id="3-chenqian-backend-implementation">3. Chenqian: Backend Implementation</h2>
+<h3 id="major-design-choices-and-decisions-2">Major Design Choices and Decisions</h3>
+<h4 id="narrative-focus-building-a-flexible-and-extensible-data-layer">Narrative Focus: Building a Flexible and Extensible Data Layer</h4>
+<p>Your story should focus on how the backend needed to handle various data sources and operations while maintaining a clean separation of concerns.</p>
+<p><strong>Recommended Flow:</strong></p>
+<ol>
+<li><strong>Initial Data Challenges</strong>: Begin with the challenges of managing different types of product data and external sources.</li>
+<li><strong>Firebase Integration Complexity</strong>: Explain the complexity of Firebase integration and the need to hide implementation details.</li>
+<li><strong>Design Pattern Selection</strong>: Focus on two key patterns for backend operations:
+<ul>
+<li><strong>Factory Method</strong>: Instead of making objects directly, you call a special &quot;factory&quot; method that decides which object to create. Show how this created different product objects from Firebase data.</li>
+<li><strong>Façade</strong>: Give users one simple interface to Firebase's complex APIs. Show how this simplified data access for the rest of the application.</li>
+</ul>
+</li>
+</ol>
+<p><strong>Sample Narrative Points:</strong></p>
+<ul>
+<li>&quot;As the app's data needs grew beyond simple product listings to include technical specifications and real-time price comparisons, we needed a structured approach to data management.&quot;</li>
+<li>&quot;Firebase offers powerful capabilities but has complex APIs. We needed to hide this complexity behind simple interfaces to keep the rest of the application clean.&quot;</li>
+<li>&quot;Different product types needed different data structures, so we needed a flexible way to create objects from Firebase data.&quot;</li>
+</ul>
+<h4 id="code-to-showcase-2">Code to Showcase:</h4>
+<ul>
+<li><code>src/services/firebase/FirebaseService.ts</code> - How it implements the Façade pattern to hide Firebase complexity</li>
+<li><code>src/patterns/factory/ProductFactory.ts</code> - How it creates product objects from Firebase data</li>
+</ul>
+<h3 id="software-engineering-principles-2">Software Engineering Principles</h3>
+<h4 id="solid-principles-in-backend-implementation">SOLID Principles in Backend Implementation</h4>
+<p>Focus on demonstrating how the backend adheres to SOLID principles:</p>
+<ol>
+<li>
+<p><strong>SRP (Single Responsibility)</strong>: Each class or module should do only one job</p>
+<ul>
+<li><code>src/services/firebase/FirebaseService.ts</code> - Handles only Firebase connection and configuration</li>
+<li>Separate repository interfaces for different data access operations</li>
+</ul>
+</li>
+<li>
+<p><strong>OCP (Open-Closed)</strong>: Code should let you add new features without changing old code</p>
+<ul>
+<li><code>src/services/firebase/interfaces/IProductRepository.ts</code> - Interface that allows extending functionality</li>
+<li>How new product types can be added without modifying existing repository code</li>
+</ul>
+</li>
+</ol>
+<h4 id="design-pattern-implementation---factory-method-pattern">Design Pattern Implementation - Factory Method Pattern</h4>
+<p><strong>Key Code Example</strong>:</p>
+<ul>
+<li><code>src/patterns/factory/ProductFactory.ts</code> - How it's used to create product objects from Firebase data</li>
+</ul>
+<p><strong>Key Points to Highlight</strong>:</p>
+<ul>
+<li>How the Factory Method pattern creates appropriate product objects based on type</li>
+<li>How it supports the addition of new product types (showing the evolution from just regulators to including BCDs and fins)</li>
+</ul>
+<h4 id="design-pattern-implementation---façade-pattern-1">Design Pattern Implementation - Façade Pattern</h4>
+<p><strong>Key Code Example</strong>:</p>
+<ul>
+<li><code>src/services/firebase/FirebaseService.ts</code> - How it simplifies Firebase interactions</li>
+</ul>
+<p><strong>Key Points to Highlight</strong>:</p>
+<ul>
+<li>How the Façade pattern hides the complexity of Firebase operations</li>
+<li>How it provides a simple, consistent interface for data access</li>
+<li>How it centralizes Firebase-specific logic to make the rest of the application more maintainable</li>
+</ul>
+<h2 id="general-implementation-tips">General Implementation Tips</h2>
+<p>For all team members, ensure you:</p>
+<ol>
+<li><strong>Connect to Design Patterns</strong>: Show how your implementation uses Factory Method, Façade, or Visitor patterns</li>
+<li><strong>Highlight SOLID Principles</strong>: Focus on how your code follows SRP, OCP, LSP, ISP, and DIP</li>
+<li><strong>Use Real Code Examples</strong>: Include specific code snippets that demonstrate principles in action</li>
+<li><strong>Explain Benefits</strong>: Clarify how these design decisions improved the codebase</li>
+</ol>
+
+            
+            
+        </body>
+        </html>

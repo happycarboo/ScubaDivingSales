@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Facade Design Pattern Implementation in ScubaDivingApp</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="facade-design-pattern-implementation-in-scubadivingapp">Facade Design Pattern Implementation in ScubaDivingApp</h1>
+<h2 id="overview-of-facade-pattern">Overview of Facade Pattern</h2>
+<p>The Facade design pattern provides a simplified interface to a complex subsystem of classes. In the ScubaDivingApp, the Facade pattern has been implemented to shield the UI components from the complexities of service interactions, data fetching, and cross-subsystem operations.</p>
+<h2 id="key-implementation-files">Key Implementation Files</h2>
+<p>The primary implementation of the Facade pattern in ScubaDivingApp is found in:</p>
+<ul>
+<li><strong><code>src/patterns/facade/ServiceFacade.ts</code></strong>: The core Facade implementation that simplifies interactions with multiple subsystems</li>
+</ul>
+<h2 id="frontend-implementation">Frontend Implementation</h2>
+<h3 id="how-frontend-components-utilize-the-facade">How Frontend Components Utilize the Facade</h3>
+<p>Frontend components in the application never directly interact with individual services. Instead, they use the ServiceFacade as a single point of entry to access all backend functionality.</p>
+<pre><code>Frontend Components → ServiceFacade → Various Services/Repositories
+</code></pre>
+<h3 id="code-examples-from-frontend">Code Examples from Frontend</h3>
+<ol>
+<li><strong>Product Selection Screen</strong></li>
+</ol>
+<p>In product selection screens, instead of making direct service calls, components use the facade:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/screens/ProductSelection/ProductSelectionScreen.tsx</span>
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">ServiceFacade</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../patterns/facade/ServiceFacade&#x27;</span>;
+
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">ProductSelectionScreen</span> = (<span class="hljs-params"></span>) =&gt; {
+  <span class="hljs-keyword">const</span> [products, setProducts] = useState&lt;<span class="hljs-title class_">Product</span>[]&gt;([]);
+  <span class="hljs-keyword">const</span> serviceFacade = <span class="hljs-title class_">ServiceFacade</span>.<span class="hljs-title function_">getInstance</span>();
+  
+  <span class="hljs-title function_">useEffect</span>(<span class="hljs-function">() =&gt;</span> {
+    <span class="hljs-keyword">const</span> <span class="hljs-title function_">loadProducts</span> = <span class="hljs-keyword">async</span> (<span class="hljs-params"></span>) =&gt; {
+      <span class="hljs-keyword">try</span> {
+        <span class="hljs-comment">// Using facade instead of direct repository access</span>
+        <span class="hljs-keyword">const</span> fetchedProducts = <span class="hljs-keyword">await</span> serviceFacade.<span class="hljs-title function_">getProductsWithFilters</span>({ 
+          <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;regulator&#x27;</span> 
+        });
+        <span class="hljs-title function_">setProducts</span>(fetchedProducts);
+      } <span class="hljs-keyword">catch</span> (error) {
+        <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error loading products:&#x27;</span>, error);
+      }
+    };
+    
+    <span class="hljs-title function_">loadProducts</span>();
+  }, []);
+  
+  <span class="hljs-comment">// Component rendering...</span>
+};
+</code></pre>
+<ol start="2">
+<li><strong>Price Comparison Feature</strong></li>
+</ol>
+<p>When displaying price comparisons, components rely on the facade to handle the complex process of fetching and formatting price data:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/screens/ProductDetails/PriceComparisonSection.tsx</span>
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">ServiceFacade</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../patterns/facade/ServiceFacade&#x27;</span>;
+
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">PriceComparisonSection</span> = (<span class="hljs-params">{ productId }</span>) =&gt; {
+  <span class="hljs-keyword">const</span> [priceData, setPriceData] = <span class="hljs-title function_">useState</span>(<span class="hljs-literal">null</span>);
+  <span class="hljs-keyword">const</span> [loading, setLoading] = <span class="hljs-title function_">useState</span>(<span class="hljs-literal">true</span>);
+  <span class="hljs-keyword">const</span> serviceFacade = <span class="hljs-title class_">ServiceFacade</span>.<span class="hljs-title function_">getInstance</span>();
+  
+  <span class="hljs-title function_">useEffect</span>(<span class="hljs-function">() =&gt;</span> {
+    <span class="hljs-keyword">const</span> <span class="hljs-title function_">fetchPriceData</span> = <span class="hljs-keyword">async</span> (<span class="hljs-params"></span>) =&gt; {
+      <span class="hljs-keyword">try</span> {
+        <span class="hljs-comment">// Facade handles the complex coordination between services</span>
+        <span class="hljs-keyword">const</span> data = <span class="hljs-keyword">await</span> serviceFacade.<span class="hljs-title function_">fetchRealTimeCompetitorPrices</span>(productId);
+        <span class="hljs-title function_">setPriceData</span>(data);
+      } <span class="hljs-keyword">catch</span> (error) {
+        <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error fetching price comparison data:&#x27;</span>, error);
+      } <span class="hljs-keyword">finally</span> {
+        <span class="hljs-title function_">setLoading</span>(<span class="hljs-literal">false</span>);
+      }
+    };
+    
+    <span class="hljs-title function_">fetchPriceData</span>();
+  }, [productId]);
+  
+  <span class="hljs-comment">// Component rendering...</span>
+};
+</code></pre>
+<ol start="3">
+<li><strong>Product Detail Rendering</strong></li>
+</ol>
+<p>For displaying product details, the facade simplifies access to both product data and technical specifications:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/screens/ProductDetails/ProductDetailsScreen.tsx</span>
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">ServiceFacade</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../patterns/facade/ServiceFacade&#x27;</span>;
+
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">ProductDetailsScreen</span> = (<span class="hljs-params">{ route }</span>) =&gt; {
+  <span class="hljs-keyword">const</span> { productId } = route.<span class="hljs-property">params</span>;
+  <span class="hljs-keyword">const</span> [productDetails, setProductDetails] = <span class="hljs-title function_">useState</span>(<span class="hljs-literal">null</span>);
+  <span class="hljs-keyword">const</span> serviceFacade = <span class="hljs-title class_">ServiceFacade</span>.<span class="hljs-title function_">getInstance</span>();
+  
+  <span class="hljs-title function_">useEffect</span>(<span class="hljs-function">() =&gt;</span> {
+    <span class="hljs-keyword">const</span> <span class="hljs-title function_">loadProductDetails</span> = <span class="hljs-keyword">async</span> (<span class="hljs-params"></span>) =&gt; {
+      <span class="hljs-keyword">try</span> {
+        <span class="hljs-comment">// One simple call instead of multiple service calls</span>
+        <span class="hljs-keyword">const</span> details = <span class="hljs-keyword">await</span> serviceFacade.<span class="hljs-title function_">getProductWithTechDetails</span>(productId);
+        <span class="hljs-title function_">setProductDetails</span>(details);
+      } <span class="hljs-keyword">catch</span> (error) {
+        <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error loading product details:&#x27;</span>, error);
+      }
+    };
+    
+    <span class="hljs-title function_">loadProductDetails</span>();
+  }, [productId]);
+  
+  <span class="hljs-comment">// Component rendering...</span>
+};
+</code></pre>
+<h2 id="backend-implementation">Backend Implementation</h2>
+<h3 id="servicefacade-as-a-central-coordination-point">ServiceFacade as a Central Coordination Point</h3>
+<p>The <code>ServiceFacade</code> class orchestrates interactions between multiple backend services and repositories, hiding their complexity from the frontend components.</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/patterns/facade/ServiceFacade.ts</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ServiceFacade</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-attr">instance</span>: <span class="hljs-title class_">ServiceFacade</span>;
+  
+  <span class="hljs-comment">// Service dependencies</span>
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">firebaseService</span>: <span class="hljs-title class_">IFirebaseService</span>;
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">productRepository</span>: <span class="hljs-title class_">IProductRepository</span>;
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">realTimePriceScraperService</span>: <span class="hljs-title class_">IPriceScraperService</span>;
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">multiPlatformPriceScraperService</span>: <span class="hljs-title class_">IPriceScraperService</span>;
+  
+  <span class="hljs-comment">// Singleton pattern</span>
+  <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-title function_">getInstance</span>(): <span class="hljs-title class_">ServiceFacade</span> {
+    <span class="hljs-keyword">if</span> (!<span class="hljs-title class_">ServiceFacade</span>.<span class="hljs-property">instance</span>) {
+      <span class="hljs-title class_">ServiceFacade</span>.<span class="hljs-property">instance</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ServiceFacade</span>();
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-title class_">ServiceFacade</span>.<span class="hljs-property">instance</span>;
+  }
+  
+  <span class="hljs-comment">// Example of a facade method that coordinates multiple services</span>
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">getProductWithPriceComparison</span>(<span class="hljs-attr">productId</span>: <span class="hljs-built_in">string</span>): <span class="hljs-title class_">Promise</span>&lt;{
+    <span class="hljs-attr">product</span>: <span class="hljs-title class_">Product</span>;
+    <span class="hljs-attr">competitorPrices</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">number</span>&gt;;
+  }&gt; {
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-comment">// Get product from repository</span>
+      <span class="hljs-keyword">const</span> product = <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">productRepository</span>.<span class="hljs-title function_">getProduct</span>(productId);
+      
+      <span class="hljs-comment">// Get cached prices from price scraper service</span>
+      <span class="hljs-keyword">const</span> cachedPrices = <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">realTimePriceScraperService</span>.<span class="hljs-title function_">getLastFetchedPrices</span>(productId);
+      
+      <span class="hljs-comment">// Format prices for frontend consumption</span>
+      <span class="hljs-keyword">const</span> <span class="hljs-attr">competitorPrices</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">number</span>&gt; = {};
+      
+      <span class="hljs-keyword">if</span> (cachedPrices) {
+        <span class="hljs-comment">// Transform complex price objects to simple key-value pairs</span>
+        <span class="hljs-title class_">Object</span>.<span class="hljs-title function_">entries</span>(cachedPrices).<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">[competitor, data]</span>) =&gt;</span> {
+          competitorPrices[competitor] = data.<span class="hljs-property">price</span>;
+        });
+      } <span class="hljs-keyword">else</span> {
+        <span class="hljs-comment">// Provide fallback data if no cached prices exist</span>
+        competitorPrices[<span class="hljs-string">&#x27;Competitor A&#x27;</span>] = product.<span class="hljs-property">price</span> * <span class="hljs-number">1.1</span>;
+        competitorPrices[<span class="hljs-string">&#x27;Competitor B&#x27;</span>] = product.<span class="hljs-property">price</span> * <span class="hljs-number">0.95</span>;
+        competitorPrices[<span class="hljs-string">&#x27;Competitor C&#x27;</span>] = product.<span class="hljs-property">price</span> * <span class="hljs-number">1.05</span>;
+      }
+
+      <span class="hljs-keyword">return</span> { product, competitorPrices };
+    } <span class="hljs-keyword">catch</span> (error) {
+      <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error getting product with price comparison:&#x27;</span>, error);
+      <span class="hljs-keyword">throw</span> error;
+    }
+  }
+  
+  <span class="hljs-comment">// More facade methods...</span>
+}
+</code></pre>
+<h3 id="facade-methods-for-different-feature-areas">Facade Methods for Different Feature Areas</h3>
+<p>The ServiceFacade provides methods organized around different feature areas:</p>
+<ol>
+<li><strong>Product Management</strong></li>
+</ol>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/patterns/facade/ServiceFacade.ts</span>
+<span class="hljs-comment">// Product retrieval with filtering</span>
+<span class="hljs-keyword">async</span> <span class="hljs-title function_">getProductsWithFilters</span>(<span class="hljs-attr">filters</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">any</span>&gt;): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">Product</span>[]&gt; {
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">if</span> (filters.<span class="hljs-property">type</span>) {
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">productRepository</span>.<span class="hljs-title function_">getProductsByType</span>(filters.<span class="hljs-property">type</span>);
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">productRepository</span>.<span class="hljs-title function_">getAllProducts</span>();
+  } <span class="hljs-keyword">catch</span> (error) {
+    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error fetching products:&#x27;</span>, error);
+    <span class="hljs-keyword">throw</span> error;
+  }
+}
+
+<span class="hljs-comment">// Product creation</span>
+<span class="hljs-keyword">async</span> <span class="hljs-title function_">createProduct</span>(<span class="hljs-attr">product</span>: <span class="hljs-title class_">Product</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-built_in">void</span>&gt; {
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">productRepository</span>.<span class="hljs-title function_">createProduct</span>(product);
+  } <span class="hljs-keyword">catch</span> (error) {
+    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error creating product:&#x27;</span>, error);
+    <span class="hljs-keyword">throw</span> error;
+  }
+}
+</code></pre>
+<ol start="2">
+<li><strong>Price Scraping</strong></li>
+</ol>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/patterns/facade/ServiceFacade.ts</span>
+<span class="hljs-comment">// Real-time price fetching with status indicator</span>
+<span class="hljs-keyword">async</span> <span class="hljs-title function_">fetchRealTimeCompetitorPrices</span>(<span class="hljs-attr">productId</span>: <span class="hljs-built_in">string</span>): <span class="hljs-title class_">Promise</span>&lt;{
+  <span class="hljs-attr">product</span>: <span class="hljs-title class_">Product</span>;
+  <span class="hljs-attr">competitorPrices</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">CompetitorPrice</span>&gt;;
+  <span class="hljs-attr">isFetching</span>: <span class="hljs-built_in">boolean</span>;
+}&gt; {
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">const</span> result = {
+      <span class="hljs-attr">product</span>: <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">productRepository</span>.<span class="hljs-title function_">getProduct</span>(productId),
+      <span class="hljs-attr">competitorPrices</span>: {},
+      <span class="hljs-attr">isFetching</span>: <span class="hljs-literal">true</span>
+    };
+    
+    <span class="hljs-comment">// Get cached prices first</span>
+    <span class="hljs-keyword">const</span> cachedPrices = <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">realTimePriceScraperService</span>.<span class="hljs-title function_">getLastFetchedPrices</span>(productId);
+    <span class="hljs-keyword">if</span> (cachedPrices) {
+      result.<span class="hljs-property">competitorPrices</span> = cachedPrices;
+    }
+    
+    <span class="hljs-comment">// Start background fetch for fresh prices</span>
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">realTimePriceScraperService</span>
+      .<span class="hljs-title function_">fetchCompetitorPrices</span>(
+        productId, 
+        result.<span class="hljs-property">product</span>.<span class="hljs-property">name</span>, 
+        result.<span class="hljs-property">product</span>.<span class="hljs-property">brand</span>
+      )
+      .<span class="hljs-title function_">then</span>(<span class="hljs-function"><span class="hljs-params">freshPrices</span> =&gt;</span> {
+        <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&#x27;Fetched fresh competitor prices:&#x27;</span>, freshPrices);
+      })
+      .<span class="hljs-title function_">catch</span>(<span class="hljs-function"><span class="hljs-params">error</span> =&gt;</span> {
+        <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error fetching real-time competitor prices:&#x27;</span>, error);
+      });
+    
+    <span class="hljs-keyword">return</span> result;
+  } <span class="hljs-keyword">catch</span> (error) {
+    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error starting real-time price comparison:&#x27;</span>, error);
+    <span class="hljs-keyword">throw</span> error;
+  }
+}
+</code></pre>
+<ol start="3">
+<li><strong>Technical Product Details</strong></li>
+</ol>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/patterns/facade/ServiceFacade.ts</span>
+<span class="hljs-comment">// Unified method to get product with type-specific technical details</span>
+<span class="hljs-keyword">async</span> <span class="hljs-title function_">getProductWithTechDetails</span>(<span class="hljs-attr">productId</span>: <span class="hljs-built_in">string</span>): <span class="hljs-title class_">Promise</span>&lt;{
+  <span class="hljs-attr">product</span>: <span class="hljs-title class_">Product</span>;
+  <span class="hljs-attr">techDetails</span>: <span class="hljs-title class_">RegulatorDetails</span> | <span class="hljs-title class_">BCDDetails</span> | <span class="hljs-literal">null</span>;
+}&gt; {
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">const</span> product = <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">productRepository</span>.<span class="hljs-title function_">getProduct</span>(productId);
+    <span class="hljs-keyword">let</span> techDetails = <span class="hljs-literal">null</span>;
+    
+    <span class="hljs-comment">// Determine what type of technical details to fetch</span>
+    <span class="hljs-keyword">if</span> (product.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;regulator&#x27;</span>) {
+      techDetails = <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">getRegulatorDetails</span>(productId);
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (product.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;bcd&#x27;</span>) {
+      techDetails = <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">getBCDDetails</span>(productId);
+    }
+    
+    <span class="hljs-keyword">return</span> { product, techDetails };
+  } <span class="hljs-keyword">catch</span> (error) {
+    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error getting product with tech details:&#x27;</span>, error);
+    <span class="hljs-keyword">throw</span> error;
+  }
+}
+</code></pre>
+<ol start="4">
+<li><strong>Product Image Management</strong></li>
+</ol>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/patterns/facade/ServiceFacade.ts</span>
+<span class="hljs-comment">// Simplified image URL retrieval that handles cache checking</span>
+<span class="hljs-keyword">async</span> <span class="hljs-title function_">getProductImageUri</span>(
+  <span class="hljs-attr">productId</span>: <span class="hljs-built_in">string</span>, 
+  productUrl?: <span class="hljs-built_in">string</span>, 
+  productType?: <span class="hljs-built_in">string</span>
+): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-built_in">string</span> | <span class="hljs-literal">null</span>&gt; {
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">getProductImageService</span>().<span class="hljs-title function_">getProductImageUri</span>(productId, productUrl, productType);
+  } <span class="hljs-keyword">catch</span> (error) {
+    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">`Error getting product image URI for product <span class="hljs-subst">${productId}</span>:`</span>, error);
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+  }
+}
+</code></pre>
+<h2 id="benefits-of-the-facade-pattern-in-scubadivingapp">Benefits of the Facade Pattern in ScubaDivingApp</h2>
+<h3 id="1-simplified-component-development">1. Simplified Component Development</h3>
+<p>Frontend components only need to interact with one object (the ServiceFacade) regardless of which backend services they need to access. This makes component development more straightforward since developers don't need to understand the complexities of each individual service.</p>
+<h3 id="2-reduced-dependencies">2. Reduced Dependencies</h3>
+<p>Components have fewer direct dependencies, as they only depend on the facade rather than multiple services. This makes the components more modular and easier to test.</p>
+<h3 id="3-encapsulated-cross-cutting-concerns">3. Encapsulated Cross-Cutting Concerns</h3>
+<p>The ServiceFacade handles cross-cutting concerns such as:</p>
+<ul>
+<li><strong>Error Handling</strong>: Centralized error handling and recovery</li>
+<li><strong>Caching Logic</strong>: Decisions about when to use cached data vs. fresh data</li>
+<li><strong>Service Coordination</strong>: Orchestrating multiple service calls into a single operation</li>
+<li><strong>Data Transformation</strong>: Converting complex service responses into component-friendly formats</li>
+</ul>
+<h3 id="4-enhanced-maintainability">4. Enhanced Maintainability</h3>
+<p>When backend services change, only the facade needs to be updated, not every component that uses those services. This significantly reduces the maintenance burden when making changes to the underlying implementation.</p>
+<h3 id="5-legacy-support">5. Legacy Support</h3>
+<p>The facade provides a clean way to support both new and legacy implementations:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// src/patterns/facade/ServiceFacade.ts</span>
+<span class="hljs-comment">// Example of handling both legacy and new implementations</span>
+<span class="hljs-keyword">async</span> <span class="hljs-title function_">fetchCompetitorPrices</span>(
+  <span class="hljs-attr">productId</span>: <span class="hljs-built_in">string</span>,
+  <span class="hljs-attr">productModel</span>: <span class="hljs-built_in">string</span>,
+  <span class="hljs-attr">productBrand</span>: <span class="hljs-built_in">string</span>
+): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">CompetitorPrice</span>&gt;&gt; {
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-comment">// Try the new implementation first</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">multiPlatformPriceScraperService</span>.<span class="hljs-title function_">fetchCompetitorPrices</span>(
+      productId,
+      productModel,
+      productBrand
+    );
+  } <span class="hljs-keyword">catch</span> (error) {
+    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error fetching competitor prices with multi-platform service:&#x27;</span>, error);
+    
+    <span class="hljs-comment">// Fall back to the original implementation if the new one fails</span>
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">realTimePriceScraperService</span>.<span class="hljs-title function_">fetchCompetitorPrices</span>(
+        productId,
+        productModel,
+        productBrand
+      );
+    } <span class="hljs-keyword">catch</span> (fallbackError) {
+      <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error fetching competitor prices with fallback service:&#x27;</span>, fallbackError);
+      <span class="hljs-keyword">throw</span> fallbackError;
+    }
+  }
+}
+</code></pre>
+<h2 id="facade-vs-other-patterns-in-scubadivingapp">Facade vs. Other Patterns in ScubaDivingApp</h2>
+<h3 id="facade-and-singleton">Facade and Singleton</h3>
+<p>The ServiceFacade is implemented as a Singleton to ensure that there's only one instance coordinating all the services. This combination works well because:</p>
+<ol>
+<li>It provides global access to the facade throughout the application</li>
+<li>It ensures consistent state and caching across different components</li>
+<li>It reduces resource overhead by instantiating services only once</li>
+</ol>
+<h3 id="facade-and-factory">Facade and Factory</h3>
+<p>The facade uses the ProductFactory to create product objects when needed, showing how patterns can complement each other:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// Example of facade using factory pattern (conceptual)</span>
+<span class="hljs-keyword">async</span> <span class="hljs-title function_">createNewProduct</span>(<span class="hljs-attr">type</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">data</span>: <span class="hljs-built_in">any</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">Product</span>&gt; {
+  <span class="hljs-keyword">const</span> factory = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ProductFactory</span>();
+  <span class="hljs-keyword">const</span> product = factory.<span class="hljs-title function_">createProduct</span>(
+    <span class="hljs-keyword">type</span>,
+    data.<span class="hljs-property">id</span>,
+    data.<span class="hljs-property">name</span>,
+    data.<span class="hljs-property">brand</span>,
+    data.<span class="hljs-property">price</span>,
+    data.<span class="hljs-property">link</span>,
+    data.<span class="hljs-property">specifications</span>
+  );
+  
+  <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">productRepository</span>.<span class="hljs-title function_">createProduct</span>(product);
+  <span class="hljs-keyword">return</span> product;
+}
+</code></pre>
+<h3 id="facade-and-strategy">Facade and Strategy</h3>
+<p>The facade abstracts away the strategy pattern used in the price scraping system:</p>
+<pre><code class="language-typescript"><span class="hljs-comment">// Facade method that hides strategy selection complexity</span>
+<span class="hljs-keyword">async</span> <span class="hljs-title function_">extractProductName</span>(<span class="hljs-attr">url</span>: <span class="hljs-built_in">string</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-built_in">string</span> | <span class="hljs-literal">null</span>&gt; {
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-comment">// This internally uses the strategy pattern to select the right extractor</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">comprehensiveStrategyRegistry</span>.<span class="hljs-title function_">extractProductNameFromUrl</span>(url);
+  } <span class="hljs-keyword">catch</span> (error) {
+    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;Error extracting product name:&#x27;</span>, error);
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+  }
+}
+</code></pre>
+<h2 id="conclusion">Conclusion</h2>
+<p>The ServiceFacade in ScubaDivingApp demonstrates an effective implementation of the Facade design pattern, providing a simplified interface to complex subsystems while enhancing maintainability, reducing dependencies, and enabling more modular and testable code. By centralizing service interactions, the facade shields the UI components from the complexities of the backend implementation, allowing them to focus on their primary responsibility of rendering the user interface.</p>
+
+            <script async src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+            
+        </body>
+        </html>
