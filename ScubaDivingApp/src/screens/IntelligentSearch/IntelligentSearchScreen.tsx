@@ -239,28 +239,16 @@ const IntelligentSearchScreen = () => {
       // Apply detailed filters
       const filteredProducts = await categorizeProducts(products);
       
-      setResults(filteredProducts);
+      // Set loading to false before navigation
+      setLoading(false);
+      
+      // Navigate directly to product selection
+      navigation.navigate('ProductSelection', { filteredProducts });
     } catch (error) {
       console.error('Search error:', error);
       Alert.alert('Error', 'Failed to search for products. Please try again.');
-    } finally {
       setLoading(false);
     }
-  };
-
-  // Function to proceed to product selection with filtered results
-  const handleProceedToSelection = () => {
-    if (results.length === 0) {
-      Alert.alert(
-        'No Products Found',
-        'Please adjust your filters and try again.',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
-    
-    // Navigate to product selection with filtered results
-    navigation.navigate('ProductSelection', { filteredProducts: results });
   };
 
   // Reset all filters based on product category
@@ -581,136 +569,111 @@ const IntelligentSearchScreen = () => {
   }, [results.length]);
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Welcome message and instructions */}
-      <View style={styles.welcomeContainer}>
-        <Text style={styles.welcomeTitle}>ScubaWarehouse Sales Assistant</Text>
-        <Text style={styles.welcomeText}>
-          Welcome to the ScubaWarehouse Sales Assistant! Follow these steps to help your customer:
-        </Text>
-        <View style={styles.stepsContainer}>
-          <View style={styles.stepItem}>
-            <View style={styles.stepNumberCircle}>
-              <Text style={styles.stepNumber}>1</Text>
-            </View>
-            <Text style={styles.stepText}>Filter products based on customer needs</Text>
-          </View>
-          <View style={styles.stepItem}>
-            <View style={styles.stepNumberCircle}>
-              <Text style={styles.stepNumber}>2</Text>
-            </View>
-            <Text style={styles.stepText}>Compare up to 3 products and explain specs</Text>
-          </View>
-          <View style={styles.stepItem}>
-            <View style={styles.stepNumberCircle}>
-              <Text style={styles.stepNumber}>3</Text>
-            </View>
-            <Text style={styles.stepText}>Show detailed view with competitor prices</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.divider} />
-
-      <Text style={styles.sectionTitle}>Filter Products</Text>
-      <Text style={styles.sectionSubtitle}>Step 1: Understand your customer's needs</Text>
-
-      {/* Product category selector */}
-      <View style={styles.filterSection}>
-        <Text style={styles.filterSectionTitle}>Product Category:</Text>
-        <View style={styles.optionsContainer}>
-          {renderFilterButton('Regulators', selectedCategory === 'regulator', () => setSelectedCategory('regulator'))}
-          {renderFilterButton('BCDs', selectedCategory === 'bcd', () => setSelectedCategory('bcd'))}
-        </View>
-      </View>
-
-      {/* Specific filters based on selected category */}
-      <View style={styles.advancedFiltersContainer}>
-        <Text style={styles.advancedFiltersTitle}>Advanced Filters:</Text>
-        {selectedCategory === 'regulator' ? renderRegulatorFilters() : renderBCDFilters()}
-      </View>
-
-      {/* Action buttons */}
-      <View style={styles.actionButtonsContainer}>
-        <TouchableOpacity 
-          style={styles.resetButton}
-          onPress={() => {
-            if (selectedCategory === 'regulator') {
-              setRegulatorFilters({
-                temperature: 'All',
-                adjustableAirflow: 'All',
-                preDiveMode: 'All',
-                hpPortRange: 'All',
-                lpPortRange: 'All',
-                airflowRange: 'All',
-                diveType: 'All'
-              });
-            } else {
-              setBcdFilters({
-                type: 'All',
-                weightPocket: 'All',
-                quickRelease: 'All',
-                backTrimPocket: 'All',
-                weightRange: 'All',
-                liftCapacityRange: 'All'
-              });
-            }
-          }}
-        >
-          <Text style={styles.resetButtonText}>Reset Filters</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={styles.searchButton}
-          onPress={handleSearch}
-          disabled={loading}
-        >
-          <Text style={styles.searchButtonText}>
-            {loading ? 'Searching...' : 'Find Products'}
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
+        {/* Welcome message and instructions */}
+        <View style={styles.welcomeContainer}>
+          <Text style={styles.welcomeTitle}>ScubaWarehouse Sales Assistant</Text>
+          <Text style={styles.welcomeText}>
+            Welcome to the ScubaWarehouse Sales Assistant! Follow these steps to help your customer:
           </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Results summary */}
-      {results.length > 0 && (
-        <View style={styles.resultsContainer}>
-          <Text style={styles.resultsTitle}>
-            Found {results.length} matching product{results.length !== 1 ? 's' : ''}:
-          </Text>
-          <View style={styles.resultsList}>
-            {results.slice(0, 3).map(product => (
-              <View key={product.id} style={styles.resultItem}>
-                <Text style={styles.resultName}>{product.brand} {product.name}</Text>
-                <Text style={styles.resultPrice}>${product.price}</Text>
+          <View style={styles.stepsContainer}>
+            <View style={styles.stepItem}>
+              <View style={styles.stepNumberCircle}>
+                <Text style={styles.stepNumber}>1</Text>
               </View>
-            ))}
-            {results.length > 3 && (
-              <Text style={styles.moreResults}>
-                +{results.length - 3} more products...
-              </Text>
-            )}
+              <Text style={styles.stepText}>Filter products based on customer needs</Text>
+            </View>
+            <View style={styles.stepItem}>
+              <View style={styles.stepNumberCircle}>
+                <Text style={styles.stepNumber}>2</Text>
+              </View>
+              <Text style={styles.stepText}>Compare up to 3 products and explain specs</Text>
+            </View>
+            <View style={styles.stepItem}>
+              <View style={styles.stepNumberCircle}>
+                <Text style={styles.stepNumber}>3</Text>
+              </View>
+              <Text style={styles.stepText}>Show detailed view with competitor prices</Text>
+            </View>
           </View>
-
-          <TouchableOpacity 
-            style={styles.nextStepButton}
-            onPress={handleProceedToSelection}
-          >
-            <Text style={styles.nextStepButtonText}>
-              Next: View & Compare Products
-            </Text>
-          </TouchableOpacity>
         </View>
-      )}
 
+        <View style={styles.divider} />
+
+        <Text style={styles.sectionTitle}>Filter Products</Text>
+        <Text style={styles.sectionSubtitle}>Step 1: Understand your customer's needs</Text>
+
+        {/* Product category selector */}
+        <View style={styles.filterSection}>
+          <Text style={styles.filterSectionTitle}>Product Category:</Text>
+          <View style={styles.optionsContainer}>
+            {renderFilterButton('Regulators', selectedCategory === 'regulator', () => setSelectedCategory('regulator'))}
+            {renderFilterButton('BCDs', selectedCategory === 'bcd', () => setSelectedCategory('bcd'))}
+          </View>
+        </View>
+
+        {/* Specific filters based on selected category */}
+        <View style={styles.advancedFiltersContainer}>
+          <Text style={styles.advancedFiltersTitle}>Advanced Filters:</Text>
+          {selectedCategory === 'regulator' ? renderRegulatorFilters() : renderBCDFilters()}
+        </View>
+
+        {/* Add extra space at the bottom to ensure content isn't hidden behind the fixed buttons */}
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
+      
+      {/* Loading indicator */}
       {loading && (
-        <View style={styles.loadingContainer}>
+        <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#0066cc" />
           <Text style={styles.loadingText}>Finding products...</Text>
         </View>
       )}
+      
+      {/* Fixed action buttons at bottom */}
+      <View style={styles.fixedButtonContainer}>
+        <View style={styles.actionButtonsContainer}>
+          <TouchableOpacity 
+            style={styles.resetButton}
+            onPress={() => {
+              if (selectedCategory === 'regulator') {
+                setRegulatorFilters({
+                  temperature: 'All',
+                  adjustableAirflow: 'All',
+                  preDiveMode: 'All',
+                  hpPortRange: 'All',
+                  lpPortRange: 'All',
+                  airflowRange: 'All',
+                  diveType: 'All'
+                });
+              } else {
+                setBcdFilters({
+                  type: 'All',
+                  weightPocket: 'All',
+                  quickRelease: 'All',
+                  backTrimPocket: 'All',
+                  weightRange: 'All',
+                  liftCapacityRange: 'All'
+                });
+              }
+            }}
+          >
+            <Text style={styles.resetButtonText}>Reset Filters</Text>
+          </TouchableOpacity>
 
-      <View style={styles.bottomSpacer} />
-    </ScrollView>
+          <TouchableOpacity 
+            style={styles.searchButton}
+            onPress={handleSearch}
+            disabled={loading}
+          >
+            <Text style={styles.searchButtonText}>
+              {loading ? 'Searching...' : 'Find Products'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
   );
 };
 
@@ -718,6 +681,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f7fa',
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 24, // Extra padding at bottom for the fixed buttons
   },
   welcomeContainer: {
     backgroundColor: '#fff',
@@ -957,7 +926,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   bottomSpacer: {
-    height: 40,
+    height: 80, // Increase height to accommodate the fixed button container
   },
   resultCard: {
     backgroundColor: '#fff',
@@ -1041,6 +1010,28 @@ const styles = StyleSheet.create({
   filterButtonsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+  },
+  fixedButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
   },
 });
 

@@ -91,19 +91,34 @@ const ProductSelectionScreen = () => {
       
       if (filteredProductsFromNav) {
         console.log('Using filtered products from navigation:', filteredProductsFromNav.length);
+        
+        // Before setting the products, initialize image loading states for products without imageUrl
+        const loadingStates: Record<string, boolean> = {};
+        filteredProductsFromNav.forEach(product => {
+          loadingStates[product.id] = !product.imageUrl; // Only set to loading if no image URL exists
+        });
+        setImagesLoading(loadingStates);
+        
         setProducts(filteredProductsFromNav);
         setFilteredProducts(filteredProductsFromNav);
+        
+        // Get cached images right away
+        const images = await serviceFacade.getCachedProductImages();
+        setCachedImages(images);
+        
+        // Immediately trigger image loading for products without images
+        loadProductImages(filteredProductsFromNav, images);
       } else {
         console.log('Fetching products from Firebase...');
         const productsData = await serviceFacade.getProductsWithFilters({});
         console.log('Products fetched:', productsData.length);
         setProducts(productsData);
         setFilteredProducts(productsData);
+        
+        // Load cached images
+        const images = await serviceFacade.getCachedProductImages();
+        setCachedImages(images);
       }
-      
-      // Load cached images
-      const images = await serviceFacade.getCachedProductImages();
-      setCachedImages(images);
     } catch (error) {
       console.error('Error loading initial data:', error);
       Alert.alert(
@@ -116,120 +131,105 @@ const ProductSelectionScreen = () => {
     }
   };
 
-  // Add a useFocusEffect to refresh cached images when returning to the screen
-  useFocusEffect(
-    useCallback(() => {
-      const refreshCachedImages = async () => {
-        try {
-          // Get all cached images
-          const images = await serviceFacade.getCachedProductImages();
-          setCachedImages(images);
-          
-          // Update products with image URLs
-          if (Object.keys(images).length > 0) {
-            console.log(`Found ${Object.keys(images).length} cached images, updating products`);
-            
-            setProducts(currentProducts => 
-              currentProducts.map(product => ({
-                ...product,
-                imageUrl: images[product.id] || product.imageUrl
-              }))
-            );
-            
-            setFilteredProducts(currentFiltered => 
-              currentFiltered.map(product => ({
-                ...product,
-                imageUrl: images[product.id] || product.imageUrl
-              }))
-            );
-          }
-        } catch (error) {
-          console.error('Error refreshing cached images:', error);
-        }
-      };
+  // Create a separate function for loading product images that can be called directly
+  const loadProductImages = async (productsToLoad = products, existingCache: Record<string, string> = {}) => {
+    if (productsToLoad.length === 0) return;
+    
+    try {
+      console.log('Loading product images for', productsToLoad.length, 'products');
       
-      refreshCachedImages();
-    }, [isFocused])
-  );
-
-  // Add image loading functionality
-  useEffect(() => {
-    const loadProductImages = async () => {
-      if (products.length === 0) return;
-      
-      try {
-        console.log('Loading product images...');
-        
-        // Create a tracking object for image loading states
-        const loadingStates: Record<string, boolean> = {};
-        products.forEach(product => {
+      // Use existing loading states or create new ones
+      const loadingStates = {...imagesLoading};
+      productsToLoad.forEach((product: ProductItem) => {
+        if (loadingStates[product.id] === undefined) {
           loadingStates[product.id] = true;
-        });
-        setImagesLoading(loadingStates);
-        
-        // First try to get all cached images
-        const cachedImages = await serviceFacade.getCachedProductImages();
-        setCachedImages(cachedImages);
-        
-        // Group products by type to help with sharing images
-        const productsByType: Record<string, ProductItem[]> = {};
-        products.forEach(product => {
-          if (!productsByType[product.type]) {
-            productsByType[product.type] = [];
-          }
-          productsByType[product.type].push(product);
-        });
-        
-        // Load images for each product
-        const updatedProducts = await Promise.all(
-          products.map(async product => {
-            // Skip if we already have the image in cache
-            if (cachedImages[product.id]) {
-              loadingStates[product.id] = false;
-              setImagesLoading({...loadingStates});
-              return { ...product, imageUrl: cachedImages[product.id] };
-            }
-            
-            // Try to get the image
-            const imageUrl = await serviceFacade.getProductImageUri(product.id, product.link);
+        }
+      });
+      setImagesLoading(loadingStates);
+      
+      // Use provided cache or get all cached images
+      const cachedImages = Object.keys(existingCache).length > 0 
+        ? existingCache
+        : await serviceFacade.getCachedProductImages();
+      
+      setCachedImages(cachedImages);
+      
+      // Group products by type to help with sharing images
+      const productsByType: Record<string, ProductItem[]> = {};
+      productsToLoad.forEach(product => {
+        if (!productsByType[product.type]) {
+          productsByType[product.type] = [];
+        }
+        productsByType[product.type].push(product);
+      });
+      
+      // Load images for each product
+      const updatedProducts = await Promise.all(
+        productsToLoad.map(async product => {
+          // Skip if we already have the image in cache
+          if (cachedImages[product.id]) {
             loadingStates[product.id] = false;
             setImagesLoading({...loadingStates});
+            return { ...product, imageUrl: cachedImages[product.id] };
+          }
+          
+          // Skip if product already has an image URL
+          if (product.imageUrl) {
+            loadingStates[product.id] = false;
+            setImagesLoading({...loadingStates});
+            return product;
+          }
+          
+          // Try to get the image
+          const imageUrl = await serviceFacade.getProductImageUri(product.id, product.link);
+          loadingStates[product.id] = false;
+          setImagesLoading({...loadingStates});
+          
+          // If we got an image, try to share with similar products of the same type
+          if (imageUrl && productsByType[product.type]) {
+            const similarProducts = productsByType[product.type].filter(p => 
+              p.id !== product.id && !cachedImages[p.id] && 
+              (p.name.includes(product.name.slice(0, 5)) || product.name.includes(p.name.slice(0, 5)))
+            );
             
-            // If we got an image, try to share with similar products of the same type
-            if (imageUrl && productsByType[product.type]) {
-              const similarProducts = productsByType[product.type].filter(p => 
-                p.id !== product.id && !cachedImages[p.id] && 
-                (p.name.includes(product.name.slice(0, 5)) || product.name.includes(p.name.slice(0, 5)))
-              );
-              
-              for (const similarProduct of similarProducts) {
-                await serviceFacade.shareProductImage(product.id, similarProduct.id);
-              }
+            for (const similarProduct of similarProducts) {
+              await serviceFacade.shareProductImage(product.id, similarProduct.id);
             }
-            
-            // Return a new product object with the image URL
-            return {
-              ...product,
-              imageUrl
-            };
-          })
-        );
-        
-        // Update products with image URLs
-        setProducts(updatedProducts);
-        setFilteredProducts(
-          filteredProducts.map(product => {
-            const updatedProduct = updatedProducts.find(p => p.id === product.id);
-            return updatedProduct || product;
-          })
-        );
-        
-        console.log('Product images loaded');
-      } catch (error) {
-        console.error('Error loading product images:', error);
-      }
-    };
+          }
+          
+          // Return a new product object with the image URL
+          return {
+            ...product,
+            imageUrl
+          };
+        })
+      );
+      
+      // Update products with image URLs
+      setProducts(currentProducts => {
+        // Map through current products and update them with new image URLs
+        return currentProducts.map(product => {
+          const updatedProduct = updatedProducts.find(p => p.id === product.id);
+          return updatedProduct || product;
+        });
+      });
+      
+      setFilteredProducts(currentFiltered => {
+        return currentFiltered.map(product => {
+          const updatedProduct = updatedProducts.find(p => p.id === product.id);
+          return updatedProduct || product;
+        });
+      });
+      
+      console.log('Product images loaded');
+    } catch (error) {
+      console.error('Error loading product images:', error);
+    }
+  };
 
+  // Modify the useEffect for image loading to use the new function
+  useEffect(() => {
+    if (products.length === 0) return;
     loadProductImages();
   }, [products.length]);
 
